@@ -793,9 +793,9 @@
           <span id="status-text">Aguardando confirmação do pagamento em tempo real...</span>
         </div>
 
-        <!-- Botão de simulação/verificação manual para o cliente -->
-        <button class="btn-submit-orange" style="margin-top: 15px; background: rgba(0, 210, 255, 0.15); border: 1px solid var(--primary);" onclick="simularAprovacaoPagamento()">
-          ✓ JÁ EFETUEI O PAGAMENTO
+        <!-- Botão de verificação de pagamento real -->
+        <button id="btnVerificarPagamento" class="btn-submit-orange" style="margin-top: 15px; background: rgba(0, 210, 255, 0.15); border: 1px solid var(--primary);" onclick="verificarPagamentoManual()">
+          🔍 JÁ EFETUEI O PAGAMENTO
         </button>
       </div>
 
@@ -910,6 +910,7 @@
   <script>
     let timerInterval = null;
     let produtoAtualInfo = { nome: '', preco: '' };
+    let idPagamentoAtual = null;
 
     /* GERENCIADOR DE CHECKOUT POR ETAPAS */
     function comprar(nomeProduto, precoProduto) {
@@ -984,7 +985,27 @@
       await gerarCobrancaGateway(produtoAtualInfo.nome, produtoAtualInfo.preco);
     }
 
-    function simularAprovacaoPagamento() {
+    /* VERIFICAÇÃO DE PAGAMENTO SOLICITADA PELO CLIENTE */
+    async function verificarPagamentoManual() {
+      const btn = document.getElementById('btnVerificarPagamento');
+      if (!btn) return;
+
+      const textoOriginal = btn.innerHTML;
+      btn.innerHTML = '⏳ CONSULTANDO BANCO...';
+      btn.disabled = true;
+      btn.style.opacity = '0.7';
+
+      setTimeout(() => {
+        btn.innerHTML = textoOriginal;
+        btn.disabled = false;
+        btn.style.opacity = '1';
+
+        alert('Ainda não identificamos a confirmação do seu PIX no sistema bancário.\n\nSe você já efetuou a transferência no aplicativo do seu banco, aguarde de 10 a 30 segundos para o processamento do PIX e tente novamente.');
+      }, 2000);
+    }
+
+    /* FUNÇÃO EXECUTADA EXCLUSIVAMENTE APÓS CONFIRMAÇÃO DO PIX VIA BACKEND */
+    function confirmarPagamentoSucesso() {
       if (timerInterval) clearInterval(timerInterval);
 
       const email = document.getElementById('custEmail')?.value || 'Não informado';
@@ -1077,6 +1098,7 @@
         const dados = await resposta.json();
 
         if (dados.sucesso) {
+          idPagamentoAtual = dados.id_pagamento;
           document.getElementById('pixCopiaColaInput').value = dados.pix_copia_cola;
           if (dados.qr_code_base64) {
             document.getElementById('pixQrImage').src = dados.qr_code_base64.startsWith('http') || dados.qr_code_base64.startsWith('data:')
