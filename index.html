@@ -1094,11 +1094,16 @@
         if (dados.sucesso) {
           idPagamentoAtual = dados.id_pagamento;
           document.getElementById('pixCopiaColaInput').value = dados.pix_copia_cola;
-          if (dados.qr_code_base64) {
+
+          // Exibe o QR Code recebido ou gera dinamicamente a partir do texto PIX Copia e Cola
+          if (dados.qr_code_base64 && dados.qr_code_base64.trim() !== '') {
             document.getElementById('pixQrImage').src = dados.qr_code_base64.startsWith('http') || dados.qr_code_base64.startsWith('data:')
               ? dados.qr_code_base64 
               : `data:image/png;base64,${dados.qr_code_base64}`;
+          } else if (dados.pix_copia_cola) {
+            document.getElementById('pixQrImage').src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(dados.pix_copia_cola)}`;
           }
+
           iniciarTimerPix(900);
 
           // Inicia o monitoramento de confirmação em tempo real
