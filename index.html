@@ -938,6 +938,7 @@
 
   <script>
     let timerInterval = null;
+    let checagemPagamentoInterval = null;
     let produtoAtualInfo = { nome: '', preco: '' };
     let idPagamentoAtual = null;
 
@@ -1047,6 +1048,71 @@
       await gerarCobrancaGateway(produtoAtualInfo.nome, produtoAtualInfo.preco);
     }
 
+    /* MONITORAMENTO AUTOMÁTICO DE STATUS (POLLING A CADA 4 SEGUNDOS) */
+    function monitorarStatusPagamento(idPagamento) {
+      if (checagemPagamentoInterval) clearInterval(checagemPagamentoInterval);
+
+      checagemPagamentoInterval = setInterval(async () => {
+        try {
+          const res = await fetch(`https://perfeito-smurf-api.onrender.com/status-pagamento/${idPagamento}`);
+          const data = await res.json();
+
+          if (data.status === 'PAID' || data.status === 'APPROVED') {
+            clearInterval(checagemPagamentoInterval);
+            confirmarPagamentoSucesso(); // Avança automaticamente para a Etapa 3!
+          }
+        } catch (err) {
+          console.error('Erro na checagem do status:', err);
+        }
+      }, 4000);
+    }
+
+    /* CONEXÃO COM O BACKEND (BRAVOPAY) E DISPARO DO POLLING */
+    async function gerarCobrancaGateway(nomeProduto, precoProduto) {
+      const precoNumero = parseFloat(precoProduto.replace('R$ ', '').replace(',', '.'));
+      const emailCliente = document.getElementById('custEmail')?.value || 'cliente@teste.com';
+
+      try {
+        const URL_DO_SEU_SERVIDOR = 'https://perfeito-smurf-api.onrender.com/gerar-pix';
+
+        document.getElementById('pixCopiaColaInput').value = "Gerando PIX... aguarde";
+        document.getElementById('pixQrImage').src = "https://via.placeholder.com/190?text=Carregando+QR...";
+
+        const resposta = await fetch(URL_DO_SEU_SERVIDOR, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            produto: nomeProduto, 
+            valor: precoNumero,
+            nomeCliente: 'Cliente Perfect Smurf', 
+            emailCliente: emailCliente
+          })
+        });
+
+        const dados = await resposta.json();
+
+        if (dados.sucesso) {
+          idPagamentoAtual = dados.id_pagamento;
+          document.getElementById('pixCopiaColaInput').value = dados.pix_copia_cola;
+          if (dados.qr_code_base64) {
+            document.getElementById('pixQrImage').src = dados.qr_code_base64.startsWith('http') || dados.qr_code_base64.startsWith('data:')
+              ? dados.qr_code_base64 
+              : `data:image/png;base64,${dados.qr_code_base64}`;
+          }
+          iniciarTimerPix(900);
+
+          // Inicia o monitoramento de confirmação em tempo real
+          monitorarStatusPagamento(dados.id_pagamento);
+        } else {
+          alert("Erro ao gerar pagamento: " + (dados.mensagem || "Erro desconhecido"));
+        }
+
+      } catch (erro) {
+        console.error("Erro de conexão:", erro);
+        document.getElementById('pixCopiaColaInput').value = "Falha ao conectar no servidor.";
+      }
+    }
+
     async function verificarPagamentoManual() {
       const btn = document.getElementById('btnVerificarPagamento');
       if (!btn) return;
@@ -1068,6 +1134,7 @@
     function fecharCheckoutModal() {
       document.getElementById('checkoutModal').style.display = 'none';
       if (timerInterval) clearInterval(timerInterval);
+      if (checagemPagamentoInterval) clearInterval(checagemPagamentoInterval);
     }
 
     function copiarPix() {
@@ -1101,53 +1168,38 @@
 
         if (--tempoRestante < 0) {
           clearInterval(timerInterval);
+          if (checagemPagamentoInterval) clearInterval(checagemPagamentoInterval);
           displayTimer.innerText = 'EXPIRADO';
           if (statusText) statusText.innerText = 'PIX expirado. Feche e abra novamente para gerar um novo.';
         }
       }, 1000);
     }
 
-    /* CONEXÃO COM O BACKEND (BRAVOPAY) */
-    async function gerarCobrancaGateway(nomeProduto, precoProduto) {
-      const precoNumero = parseFloat(precoProduto.replace('R$ ', '').replace(',', '.'));
-      const emailCliente = document.getElementById('custEmail')?.value || 'cliente@teste.com';
+    function confirmarPagamentoSucesso() {
+      if (timerInterval) clearInterval(timerInterval);
+      if (checagemPagamentoInterval) clearInterval(checagemPagamentoInterval);
 
-      try {
-        const URL_DO_SEU_SERVIDOR = 'https://perfeito-smurf-api.onrender.com/gerar-pix';
+      const email = document.getElementById('custEmail')?.value || 'Não informado';
+      const discord = document.getElementById('custDiscord')?.value || 'Não informado';
+      const riotId = document.getElementById('custRiotId')?.value || null;
+      const flash = document.getElementById('custFlash')?.value || null;
 
-        document.getElementById('pixCopiaColaInput').value = "Gerando PIX... aguarde";
-        document.getElementById('pixQrImage').src = "https://via.placeholder.com/190?text=Carregando+QR...";
+      let summaryHtml = `
+        <p><strong>Produto:</strong> ${produtoAtualInfo.nome}</p>
+        <p><strong>E-mail cadastrado:</strong> ${email}</p>
+        <p><strong>Discord:</strong> ${discord}</p>
+      `;
 
-        const resposta = await fetch(URL_DO_SEU_SERVIDOR, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            produto: nomeProduto, 
-            valor: precoNumero,
-            nomeCliente: 'Cliente Perfect Smurf', 
-            emailCliente: emailCliente
-          })
-        });
-
-        const dados = await resposta.json();
-
-        if (dados.sucesso) {
-          idPagamentoAtual = dados.id_pagamento;
-          document.getElementById('pixCopiaColaInput').value = dados.pix_copia_cola;
-          if (dados.qr_code_base64) {
-            document.getElementById('pixQrImage').src = dados.qr_code_base64.startsWith('http') || dados.qr_code_base64.startsWith('data:')
-              ? dados.qr_code_base64 
-              : `data:image/png;base64,${dados.qr_code_base64}`;
-          }
-          iniciarTimerPix(900);
-        } else {
-          alert("Erro ao gerar pagamento: " + (dados.mensagem || "Erro desconhecido"));
-        }
-
-      } catch (erro) {
-        console.error("Erro de conexão:", erro);
-        document.getElementById('pixCopiaColaInput').value = "Falha ao conectar no servidor.";
+      if (riotId) {
+        summaryHtml += `<p><strong>Riot ID:</strong> ${riotId}</p>`;
+        summaryHtml += `<p><strong>Posição Flash:</strong> Tecla ${flash}</p>`;
+        summaryHtml += `<p style="color: var(--primary); margin-top: 8px;">🚀 O booster foi notificado e iniciará seu serviço em breve!</p>`;
+      } else {
+        summaryHtml += `<p style="color: var(--primary); margin-top: 8px;">📦 Dados de acesso enviados instantaneamente para o seu e-mail!</p>`;
       }
+
+      document.getElementById('successSummaryContent').innerHTML = summaryHtml;
+      mudarEtapaCheckout(3);
     }
 
     /* AUTENTICAÇÃO VIA E-MAIL E SENHA */
