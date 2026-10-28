@@ -202,7 +202,7 @@
     .feedback-text { color: var(--text-muted); font-size: 0.95rem; line-height: 1.5; }
     .feedback-date { font-size: 0.75rem; color: #64748b; text-align: right; }
 
-    /* MODAL DE AUTENTICAÇÃO */
+    /* MODAL DE AUTENTICAÇÃO E CHECKOUT DINÂMICO */
     .auth-modal {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: rgba(4, 7, 13, 0.92); backdrop-filter: blur(10px);
@@ -210,11 +210,11 @@
     }
     .auth-card-v2 {
       background: #0d1322; border: 1px solid rgba(0, 210, 255, 0.3);
-      border-radius: 12px; padding: 40px; width: 100%; max-width: 440px;
+      border-radius: 12px; padding: 35px; width: 100%; max-width: 480px;
       box-shadow: 0 0 40px rgba(0, 210, 255, 0.25); position: relative; color: #fff;
     }
     .auth-card-v2 h2 {
-      font-family: 'Orbitron', sans-serif; font-size: 1.8rem; font-weight: 700;
+      font-family: 'Orbitron', sans-serif; font-size: 1.7rem; font-weight: 700;
       margin-bottom: 20px; color: #fff; letter-spacing: 1px;
     }
 
@@ -252,7 +252,13 @@
     }
     .auth-footer-text a { color: var(--primary); font-weight: 700; text-decoration: none; margin-left: 5px; }
 
-    /* ESTILOS DO MODAL DE CHECKOUT INTERATIVO */
+    /* ESTILOS DO CHECKOUT POR ETAPAS */
+    .step-indicator {
+      display: flex; justify-content: space-between; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 12px;
+    }
+    .step-item { font-size: 0.8rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+    .step-item.active { color: var(--primary); text-shadow: 0 0 8px rgba(0, 210, 255, 0.5); }
+
     .checkout-summary-box {
       background: rgba(0, 210, 255, 0.05); border: 1px solid rgba(0, 210, 255, 0.2);
       border-radius: 8px; padding: 15px; margin-bottom: 18px;
@@ -263,14 +269,8 @@
     .checkout-summary-row:last-child { margin-bottom: 0; padding-top: 8px; border-top: 1px dashed rgba(255,255,255,0.1); }
 
     .timer-box {
-      background: rgba(0, 210, 255, 0.08);
-      border: 1px solid rgba(0, 210, 255, 0.25);
-      border-radius: 8px;
-      padding: 8px 12px;
-      text-align: center;
-      font-size: 0.9rem;
-      color: #a0aec0;
-      margin-bottom: 18px;
+      background: rgba(0, 210, 255, 0.08); border: 1px solid rgba(0, 210, 255, 0.25);
+      border-radius: 8px; padding: 8px 12px; text-align: center; font-size: 0.9rem; color: #a0aec0; margin-bottom: 18px;
     }
     .timer-box strong { color: var(--primary); font-family: monospace; font-size: 1rem; }
 
@@ -298,6 +298,19 @@
       70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(255, 183, 3, 0); }
       100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 183, 3, 0); }
     }
+
+    /* Tela de Sucesso / Confirmação */
+    .success-box {
+      text-align: center; padding: 10px 0;
+    }
+    .success-icon {
+      font-size: 3.5rem; color: var(--success); margin-bottom: 10px; display: block;
+    }
+    .data-summary-list {
+      background: #080b12; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 15px; margin: 15px 0; text-align: left; font-size: 0.9rem; color: var(--text-muted);
+    }
+    .data-summary-list p { margin-bottom: 6px; }
+    .data-summary-list p strong { color: #fff; }
 
     /* Garantia */
     .guarantee { background: rgba(0, 210, 255, 0.05); border: 1px solid var(--primary); padding: 40px; border-radius: 8px; text-align: center; margin: 40px 8%; }
@@ -412,7 +425,7 @@
     <a href="#catalogo" class="btn-main" style="width: auto;">Ver Catálogo de Contas</a>
   </section>
 
-  <!-- Catálogo de Contas Reestruturado -->
+  <!-- Catálogo de Contas -->
   <section class="catalog" id="catalogo">
     <h2 class="section-title">Catálogo de <span>Contas Smurf</span></h2>
     
@@ -655,7 +668,7 @@
     </p>
   </footer>
 
-  <!-- ===== MODAL DE AUTENTICAÇÃO (E-MAIL E SENHA) ===== -->
+  <!-- ===== MODAL DE AUTENTICAÇÃO VIA E-MAIL E SENHA ===== -->
   <div class="auth-modal" id="authModal" onclick="fecharAuthModalFora(event)">
     <div class="auth-card-v2">
       <button class="chat-close-btn" style="position: absolute; top: 20px; right: 20px;" onclick="fecharAuthModal()">✕</button>
@@ -727,46 +740,83 @@
     </div>
   </div>
 
-  <!-- ===== MODAL DE CHECKOUT / PAGAMENTO PIX INTERATIVO ===== -->
+  <!-- ===== MODAL DE CHECKOUT DINÂMICO DE 3 ETAPAS ===== -->
   <div class="auth-modal" id="checkoutModal">
-    <div class="auth-card-v2" style="max-width: 480px;">
+    <div class="auth-card-v2" style="max-width: 500px;">
       <button class="chat-close-btn" style="position: absolute; top: 20px; right: 20px;" onclick="fecharCheckoutModal()">✕</button>
-      
-      <h2>Finalizar <span>Pagamento</span></h2>
 
-      <!-- Resumo do Item Selecionado -->
+      <h2>Finalizar <span>Compra</span></h2>
+
+      <!-- Indicador Visual de Etapas -->
+      <div class="step-indicator">
+        <span class="step-item active" id="step1-indicator">1. Dados</span>
+        <span class="step-item" id="step2-indicator">2. Pagamento PIX</span>
+        <span class="step-item" id="step3-indicator">3. Confirmação</span>
+      </div>
+
+      <!-- Resumo do Produto Selecionado -->
       <div class="checkout-summary-box">
         <div class="checkout-summary-row">
-          <span style="color: var(--text-muted);">Produto:</span>
+          <span style="color: var(--text-muted);">Item Selecionado:</span>
           <strong id="checkoutItemName" style="color: #fff;">Conta Unranked</strong>
         </div>
         <div class="checkout-summary-row">
-          <span style="color: var(--text-muted);">Total a pagar:</span>
+          <span style="color: var(--text-muted);">Total a Pagar:</span>
           <strong id="checkoutItemPrice" style="color: var(--primary); font-size: 1.2rem;">R$ 49,90</strong>
         </div>
       </div>
 
-      <!-- Regressivo de Validade do PIX -->
-      <div class="timer-box">
-        <span>⏳ Este PIX expira em <strong id="pix-timer">15:00</strong></span>
+      <!-- ETAPA 1: DADOS DO CLIENTE E DO SERVIÇO -->
+      <form id="checkoutStep1Form" onsubmit="avancarParaPagamento(event)">
+        <div id="dynamicFormFields">
+          <!-- O JavaScript insere os campos exatos (E-mail para Conta ou Riot ID/Flash/Discord para Boost) -->
+        </div>
+
+        <button type="submit" class="btn-submit-orange">GERAR PIX DE PAGAMENTO ➤</button>
+      </form>
+
+      <!-- ETAPA 2: TELA DE PAGAMENTO PIX (Escondida inicialmente) -->
+      <div id="checkoutStep2" style="display: none;">
+        <div class="timer-box">
+          <span>⏳ Este PIX expira em <strong id="pix-timer">15:00</strong></span>
+        </div>
+
+        <div class="pix-qr-container">
+          <img src="https://via.placeholder.com/190?text=Gerando+PIX..." alt="QR Code PIX" class="pix-qr-image" id="pixQrImage">
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 10px;">Escaneie o QR Code no app do banco ou use a chave Copia e Cola abaixo:</p>
+          <input type="text" id="pixCopiaColaInput" class="pix-code-input" value="Aguardando geração do PIX..." readonly>
+          <button class="btn-submit-orange" id="btnCopyPix" style="padding: 12px; font-size: 0.9rem;" onclick="copiarPix()">📋 COPIAR CÓDIGO PIX</button>
+        </div>
+
+        <div class="status-tracker">
+          <span class="pulse-dot"></span>
+          <span id="status-text">Aguardando confirmação do pagamento em tempo real...</span>
+        </div>
+
+        <!-- Botão de simulação/verificação manual para o cliente -->
+        <button class="btn-submit-orange" style="margin-top: 15px; background: rgba(0, 210, 255, 0.15); border: 1px solid var(--primary);" onclick="simularAprovacaoPagamento()">
+          ✓ JÁ EFETUEI O PAGAMENTO
+        </button>
       </div>
 
-      <!-- ÁREA PIX DADOS & QR CODE -->
-      <div class="pix-qr-container">
-        <img src="https://via.placeholder.com/190?text=Gerando+PIX..." alt="QR Code PIX" class="pix-qr-image" id="pixQrImage">
-        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 10px;">Escaneie o QR Code no app do seu banco ou use a chave Copia e Cola:</p>
-        <input type="text" id="pixCopiaColaInput" class="pix-code-input" value="Aguardando geração do PIX..." readonly>
-        <button class="btn-submit-orange" id="btnCopyPix" style="padding: 12px; font-size: 0.9rem;" onclick="copiarPix()">📋 Copiar Código PIX</button>
-      </div>
-      
-      <!-- Status em Tempo Real -->
-      <div class="status-tracker">
-        <span class="pulse-dot"></span>
-        <span id="status-text">Aguardando confirmação do pagamento em tempo real...</span>
-      </div>
+      <!-- ETAPA 3: CONFIRMAÇÃO & RESGATE (Escondida inicialmente) -->
+      <div id="checkoutStep3" style="display: none;">
+        <div class="success-box">
+          <span class="success-icon">🎉</span>
+          <h3 style="font-family: 'Orbitron', sans-serif; color: #fff; margin-bottom: 8px;">PAGAMENTO CONFIRMADO!</h3>
+          <p style="color: var(--text-muted); font-size: 0.95rem;">Seu pedido foi registrado com sucesso em nosso sistema.</p>
 
-      <div style="text-align: center; margin-top: 15px; font-size: 0.8rem; color: var(--text-muted);">
-        Dúvidas no pagamento? <a href="https://discord.gg/Ec2bRRAut" target="_blank" style="color: var(--discord); font-weight: bold; text-decoration: none;">Atendimento via Discord</a>
+          <div class="data-summary-list" id="successSummaryContent">
+            <!-- Dados preenchidos para validação do cliente -->
+          </div>
+
+          <a href="https://discord.gg/Ec2bRRAut" target="_blank" class="btn-main" style="background: var(--discord); box-shadow: 0 0 20px rgba(88, 101, 242, 0.4);">
+            <svg class="discord-icon" viewBox="0 0 127.14 96.36">
+              <path d="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.89,105.89,0,0,0,19.39,8.09C2.79,32.65-1.71,56.6.54,80.21h0A105.73,105.73,0,0,0,32.71,96.36,77.7,77.7,0,0,0,39.6,85.25a68.42,68.42,0,0,1-10.85-5.18c.91-.66,1.8-1.34,2.66-2a73.51,73.51,0,0,0,64.32,0c.87.68,1.76,1.36,2.66,2a68.68,68.68,0,0,1-10.87,5.19,77,77,0,0,0,6.89,11.1A105.25,105.25,0,0,0,126.6,80.22h0C129.24,52.84,121.5,29.11,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53s5-12.74,11.43-12.74S54,45.91,53.89,53,48.84,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.25,60,73.25,53s5-12.74,11.44-12.74S96.23,45.91,96.12,53,91.08,65.69,84.69,65.69Z"/>
+            </svg>
+            ABRIR TICKET NO DISCORD
+          </a>
+        </div>
       </div>
 
     </div>
@@ -859,15 +909,105 @@
 
   <script>
     let timerInterval = null;
+    let produtoAtualInfo = { nome: '', preco: '' };
 
-    /* LÓGICA DE CHECKOUT E INTEGRAÇÃO DE GATEWAY */
+    /* GERENCIADOR DE CHECKOUT POR ETAPAS */
     function comprar(nomeProduto, precoProduto) {
+      produtoAtualInfo = { nome: nomeProduto, preco: precoProduto };
+
       document.getElementById('checkoutItemName').innerText = nomeProduto;
       document.getElementById('checkoutItemPrice').innerText = precoProduto;
+
+      // Renderiza o formulário customizado da Etapa 1
+      renderizarCamposEtapa1(nomeProduto);
+
+      // Exibe a Etapa 1 e reseta os indicadores
+      mudarEtapaCheckout(1);
       document.getElementById('checkoutModal').style.display = 'flex';
-      
-      // Inicia a cobrança e o temporizador
-      gerarCobrancaGateway(nomeProduto, precoProduto);
+    }
+
+    function renderizarCamposEtapa1(nomeProduto) {
+      const container = document.getElementById('dynamicFormFields');
+      const ehBoost = nomeProduto.toLowerCase().includes('boost');
+
+      if (ehBoost) {
+        container.innerHTML = `
+          <div class="form-group">
+            <label>RIOT ID COMPLETO (NICK #TAG)</label>
+            <input type="text" id="custRiotId" class="form-control" placeholder="Ex: Player#BR1" required>
+          </div>
+          <div class="form-group">
+            <label>FEITIÇO FLASH (POSIÇÃO)</label>
+            <select id="custFlash" class="form-control">
+              <option value="D">Flash no D</option>
+              <option value="F">Flash no F</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>SUA TAG NO DISCORD (PARA CONTATO DO BOOSTER)</label>
+            <input type="text" id="custDiscord" class="form-control" placeholder="Ex: seunome#0000 ou seunome" required>
+          </div>
+          <div class="form-group">
+            <label>E-MAIL PARA ATUALIZAÇÃO DO PEDIDO</label>
+            <input type="email" id="custEmail" class="form-control" placeholder="seuemail@exemplo.com" required>
+          </div>
+        `;
+      } else {
+        container.innerHTML = `
+          <div class="form-group">
+            <label>E-MAIL PARA ENVIO DA CONTA SMURF</label>
+            <input type="email" id="custEmail" class="form-control" placeholder="seuemail@exemplo.com" required>
+          </div>
+          <div class="form-group">
+            <label>SUA TAG NO DISCORD (OPCIONAL PARA SUPORTE)</label>
+            <input type="text" id="custDiscord" class="form-control" placeholder="Ex: seunome#0000">
+          </div>
+        `;
+      }
+    }
+
+    function mudarEtapaCheckout(etapa) {
+      document.getElementById('checkoutStep1Form').style.display = (etapa === 1) ? 'block' : 'none';
+      document.getElementById('checkoutStep2').style.display = (etapa === 2) ? 'block' : 'none';
+      document.getElementById('checkoutStep3').style.display = (etapa === 3) ? 'block' : 'none';
+
+      document.getElementById('step1-indicator').className = 'step-item ' + (etapa >= 1 ? 'active' : '');
+      document.getElementById('step2-indicator').className = 'step-item ' + (etapa >= 2 ? 'active' : '');
+      document.getElementById('step3-indicator').className = 'step-item ' + (etapa >= 3 ? 'active' : '');
+    }
+
+    async function avancarParaPagamento(event) {
+      event.preventDefault();
+      mudarEtapaCheckout(2);
+
+      // Gera o PIX via backend no Render
+      await gerarCobrancaGateway(produtoAtualInfo.nome, produtoAtualInfo.preco);
+    }
+
+    function simularAprovacaoPagamento() {
+      if (timerInterval) clearInterval(timerInterval);
+
+      const email = document.getElementById('custEmail')?.value || 'Não informado';
+      const discord = document.getElementById('custDiscord')?.value || 'Não informado';
+      const riotId = document.getElementById('custRiotId')?.value || null;
+      const flash = document.getElementById('custFlash')?.value || null;
+
+      let summaryHtml = `
+        <p><strong>Produto:</strong> ${produtoAtualInfo.nome}</p>
+        <p><strong>E-mail cadastrado:</strong> ${email}</p>
+        <p><strong>Discord:</strong> ${discord}</p>
+      `;
+
+      if (riotId) {
+        summaryHtml += `<p><strong>Riot ID:</strong> ${riotId}</p>`;
+        summaryHtml += `<p><strong>Posição Flash:</strong> Tecla ${flash}</p>`;
+        summaryHtml += `<p style="color: var(--primary); margin-top: 8px;">🚀 O booster foi notificado e iniciará seu serviço em breve!</p>`;
+      } else {
+        summaryHtml += `<p style="color: var(--primary); margin-top: 8px;">📦 Dados de acesso enviados instantaneamente para o seu e-mail!</p>`;
+      }
+
+      document.getElementById('successSummaryContent').innerHTML = summaryHtml;
+      mudarEtapaCheckout(3);
     }
 
     function fecharCheckoutModal() {
@@ -912,9 +1052,10 @@
       }, 1000);
     }
 
-    /* PONTO DE CONEXÃO COM O SEU BACKEND (BRAVOPAY) */
+    /* CONEXÃO COM O BACKEND (BRAVOPAY) */
     async function gerarCobrancaGateway(nomeProduto, precoProduto) {
       const precoNumero = parseFloat(precoProduto.replace('R$ ', '').replace(',', '.'));
+      const emailCliente = document.getElementById('custEmail')?.value || 'cliente@teste.com';
 
       try {
         const URL_DO_SEU_SERVIDOR = 'https://perfeito-smurf-api.onrender.com/gerar-pix';
@@ -929,7 +1070,7 @@
             produto: nomeProduto, 
             valor: precoNumero,
             nomeCliente: 'Cliente Perfect Smurf', 
-            emailCliente: 'cliente@teste.com'
+            emailCliente: emailCliente
           })
         });
 
@@ -942,7 +1083,7 @@
               ? dados.qr_code_base64 
               : `data:image/png;base64,${dados.qr_code_base64}`;
           }
-          iniciarTimerPix(900); // 15 minutos de expiração
+          iniciarTimerPix(900); // 15 minutos
         } else {
           alert("Erro ao gerar pagamento: " + (dados.mensagem || "Erro desconhecido"));
         }
@@ -1074,7 +1215,7 @@
       }
     }
 
-    /* LÓGICA DO CATÁLOGO DE CONTAS */
+    /* CATÁLOGO DE CONTAS */
     let tipoContaAtual = 'unranked';
 
     const contasUnrankedHTML = `
@@ -1148,7 +1289,7 @@
       document.getElementById('accountsGrid').innerHTML = html;
     }
 
-    /* LÓGICA DE FEEDBACKS */
+    /* FEEDBACKS */
     let currentRating = 5;
     const initialFeedbacks = [
       { name: "Gabriel M.", rating: 5, comment: "Comprei uma unranked e recebi os dados em 5 segundos no e-mail. MMR limpinho!", date: "25/10/2026" },
