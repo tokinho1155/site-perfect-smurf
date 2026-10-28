@@ -880,7 +880,7 @@
         </button>
       </div>
 
-      <!-- ETAPA 3: CONFIRMAÇÃO -->
+      <!-- ETAPA 3: CONFIRMAÇÃO & AGENDAMENTO -->
       <div id="checkoutStep3" style="display: none;">
         <div class="success-box">
           <span class="success-icon">🎉</span>
@@ -889,7 +889,7 @@
 
           <div class="data-summary-list" id="successSummaryContent"></div>
 
-          <a href="https://discord.gg/Ec2bRRAut" target="_blank" class="btn-main" style="background: var(--discord); box-shadow: 0 0 20px rgba(88, 101, 242, 0.4);">
+          <a href="https://discord.gg/Ec2bRRAut" target="_blank" class="btn-main" style="background: var(--discord); box-shadow: 0 0 20px rgba(88, 101, 242, 0.4); margin-top: 15px;">
             <svg class="discord-icon" viewBox="0 0 127.14 96.36">
               <path d="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.89,105.89,0,0,0,19.39,8.09C2.79,32.65-1.71,56.6.54,80.21h0A105.73,105.73,0,0,0,32.71,96.36,77.7,77.7,0,0,0,39.6,85.25a68.42,68.42,0,0,1-10.85-5.18c.91-.66,1.8-1.34,2.66-2a73.51,73.51,0,0,0,64.32,0c.87.68,1.76,1.36,2.66,2a68.68,68.68,0,0,1-10.87,5.19,77,77,0,0,0,6.89,11.1A105.25,105.25,0,0,0,126.6,80.22h0C129.24,52.84,121.5,29.11,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53s5-12.74,11.43-12.74S54,45.91,53.89,53,48.84,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.25,60,73.25,53s5-12.74,11.44-12.74S96.23,45.91,96.12,53,91.08,65.69,84.69,65.69Z"/>
             </svg>
@@ -1222,6 +1222,7 @@
       }, 1000);
     }
 
+    /* CONFIRMAÇÃO DO PAGAMENTO E AGENDAMENTO DE DUO BOOST */
     function confirmarPagamentoSucesso() {
       if (timerInterval) clearInterval(timerInterval);
       if (checagemPagamentoInterval) clearInterval(checagemPagamentoInterval);
@@ -1230,6 +1231,7 @@
       const discord = document.getElementById('custDiscord')?.value || 'Não informado';
       const riotId = document.getElementById('custRiotId')?.value || null;
       const flash = document.getElementById('custFlash')?.value || null;
+      const ehDuoBoost = produtoAtualInfo.nome.toLowerCase().includes('duo');
 
       let summaryHtml = `
         <p><strong>Produto:</strong> ${produtoAtualInfo.nome}</p>
@@ -1241,13 +1243,67 @@
       if (riotId) {
         summaryHtml += `<p><strong>Riot ID:</strong> ${riotId}</p>`;
         summaryHtml += `<p><strong>Posição Flash:</strong> Tecla ${flash}</p>`;
-        summaryHtml += `<p style="color: var(--primary); margin-top: 8px;">🚀 O booster foi notificado e iniciará seu serviço em breve!</p>`;
+      }
+
+      if (ehDuoBoost) {
+        summaryHtml += `
+          <div style="margin-top: 15px; padding: 15px; background: rgba(0, 210, 255, 0.08); border: 1px solid var(--primary); border-radius: 8px; text-align: left;">
+            <h4 style="color: #fff; margin-bottom: 10px; font-family: 'Orbitron', sans-serif;">📅 Agendar Horário das Partidas</h4>
+            <div class="form-group">
+              <label style="color: var(--accent);">DATA E HORÁRIO PREFERIDO</label>
+              <input type="datetime-local" id="agendamentoData" class="form-control" style="background: #080b12; color: #fff;">
+            </div>
+            <div class="form-group">
+              <label style="color: var(--accent);">SUA ROTA / POSIÇÃO NO LOL</label>
+              <select id="agendamentoRota" class="form-control" style="background: #080b12; color: #fff;">
+                <option value="Mid / Jungle">Mid / Jungle</option>
+                <option value="ADC / Suporte">ADC / Suporte</option>
+                <option value="Top / Fill">Top / Qualquer Rota</option>
+              </select>
+            </div>
+            <button onclick="enviarAgendamentoDuo()" class="btn-submit-orange" style="padding: 10px; font-size: 0.9rem; margin-top: 10px;">CONFIRMAR AGENDAMENTO</button>
+          </div>
+        `;
       } else {
         summaryHtml += `<p style="color: var(--primary); margin-top: 8px;">📦 Dados de acesso (${produtoAtualInfo.quantidade}x) enviados instantaneamente para o seu e-mail!</p>`;
       }
 
       document.getElementById('successSummaryContent').innerHTML = summaryHtml;
       mudarEtapaCheckout(3);
+    }
+
+    async function enviarAgendamentoDuo() {
+      const dataHora = document.getElementById('agendamentoData')?.value;
+      const rota = document.getElementById('agendamentoRota')?.value;
+
+      if (!dataHora) {
+        alert("Por favor, selecione a data e o horário desejado.");
+        return;
+      }
+
+      try {
+        const resposta = await fetch('https://perfeito-smurf-api.onrender.com/agendar-duo', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            idPagamento: idPagamentoAtual,
+            produto: produtoAtualInfo.nome,
+            discord: document.getElementById('custDiscord')?.value,
+            dataHora,
+            rota
+          })
+        });
+
+        const dados = await resposta.json();
+        if (dados.sucesso) {
+          alert("Agendamento confirmado com sucesso! Nosso booster entrará em contato via Discord no horário selecionado.");
+        } else {
+          alert("Erro ao enviar agendamento. Entre em contato pelo Discord.");
+        }
+      } catch (err) {
+        console.error("Erro ao enviar agendamento:", err);
+        alert("Falha ao conectar com o servidor para agendar.");
+      }
     }
 
     /* AUTENTICAÇÃO VIA E-MAIL E SENHA */
