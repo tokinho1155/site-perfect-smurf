@@ -135,6 +135,22 @@
     .features li { margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
     .features li::before { content: "⚡"; font-size: 0.8rem; }
 
+    /* SELETOR DE QUANTIDADE NEON */
+    .qty-selector-container {
+      display: flex; align-items: center; justify-content: space-between;
+      background: rgba(12, 18, 32, 0.9); border: 1px solid rgba(0, 210, 255, 0.25);
+      border-radius: 8px; padding: 10px 15px; margin-bottom: 18px;
+    }
+    .qty-label { font-size: 0.9rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+    .qty-controls { display: flex; align-items: center; gap: 10px; }
+    .btn-qty {
+      width: 32px; height: 32px; background: rgba(0, 210, 255, 0.1); border: 1px solid var(--primary);
+      color: #fff; font-size: 1.1rem; font-weight: 800; border-radius: 6px; cursor: pointer; transition: 0.2s;
+      display: flex; align-items: center; justify-content: center; user-select: none;
+    }
+    .btn-qty:hover { background: var(--primary); color: #000; box-shadow: 0 0 10px rgba(0, 210, 255, 0.5); }
+    .qty-display { font-family: 'Orbitron', sans-serif; font-size: 1.2rem; font-weight: 800; color: #fff; min-width: 28px; text-align: center; }
+
     .card-footer-info { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted); margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 10px; }
 
     /* POR QUE COMPRAR UMA CONTA SMURF */
@@ -535,7 +551,7 @@
           <span style="color: var(--text-muted); font-size: 0.9rem;">Valor Estimado:</span>
           <div class="total-price" id="preco-elo">R$ 50,60</div>
         </div>
-        <button class="btn-main" onclick="comprar('Elo Boost Customizado', document.getElementById('preco-elo').innerText)" style="width: auto;">CONTRATAR SERVIÇO</button>
+        <button class="btn-main" onclick="comprar('Elo Boost Customizado', document.getElementById('preco-elo').innerText, 1)" style="width: auto;">CONTRATAR SERVIÇO</button>
       </div>
     </div>
   </section>
@@ -553,7 +569,7 @@
             <li>Voice no Discord incluso</li>
             <li>Dicas de posicionamento ao vivo</li>
           </ul>
-          <button class="btn-main" onclick="comprar('Duo Boost Ferro/Bronze', 'R$ 12,00')">CONTRATAR SERVIÇO</button>
+          <button class="btn-main" onclick="comprar('Duo Boost Ferro/Bronze', 'R$ 12,00', 1)">CONTRATAR SERVIÇO</button>
         </div>
 
         <div class="card" style="text-align: center; border-color: var(--accent);">
@@ -565,7 +581,7 @@
             <li>Acompanhamento de rotas e visões</li>
             <li>Horários flexíveis para jogar</li>
           </ul>
-          <button class="btn-main" onclick="comprar('Duo Boost Prata/Ouro', 'R$ 22,00')">CONTRATAR SERVIÇO</button>
+          <button class="btn-main" onclick="comprar('Duo Boost Prata/Ouro', 'R$ 22,00', 1)">CONTRATAR SERVIÇO</button>
         </div>
 
         <div class="card" style="text-align: center;">
@@ -576,7 +592,7 @@
             <li>Estratégias avançadas de macro</li>
             <li>Garantia de alta taxa de vitória</li>
           </ul>
-          <button class="btn-main" onclick="comprar('Duo Boost Platina/Esmeralda', 'R$ 38,00')">CONTRATAR SERVIÇO</button>
+          <button class="btn-main" onclick="comprar('Duo Boost Platina/Esmeralda', 'R$ 38,00', 1)">CONTRATAR SERVIÇO</button>
         </div>
       </div>
     </div>
@@ -939,8 +955,9 @@
   <script>
     let timerInterval = null;
     let checagemPagamentoInterval = null;
-    let produtoAtualInfo = { nome: '', preco: '' };
+    let produtoAtualInfo = { nome: '', preco: '', unitario: 0, quantidade: 1 };
     let idPagamentoAtual = null;
+    let qtdUnrankedSelecionada = 1;
 
     /* MENU MOBILE */
     function toggleMobileMenu() {
@@ -977,14 +994,42 @@
       setTimeout(() => toast.classList.remove('active'), 5000);
     }
 
-    // Dispara a cada 18 segundos
     setInterval(dispararToastAleatorio, 18000);
 
-    /* GERENCIADOR DE CHECKOUT */
-    function comprar(nomeProduto, precoProduto) {
-      produtoAtualInfo = { nome: nomeProduto, preco: precoProduto };
+    /* GERENCIADOR DE QUANTIDADE DA CONTA UNRANKED */
+    function alterarQtdUnranked(delta) {
+      const precoUnitario = 49.90;
+      qtdUnrankedSelecionada = Math.max(1, Math.min(10, qtdUnrankedSelecionada + delta));
+      
+      const displayQtd = document.getElementById('unrankedQtdDisplay');
+      const displayPrice = document.getElementById('unrankedPriceDisplay');
 
-      document.getElementById('checkoutItemName').innerText = nomeProduto;
+      if (displayQtd) displayQtd.innerText = qtdUnrankedSelecionada;
+      
+      const precoTotal = (precoUnitario * qtdUnrankedSelecionada).toFixed(2).replace('.', ',');
+      if (displayPrice) displayPrice.innerText = `R$ ${precoTotal}`;
+    }
+
+    function comprarUnranked() {
+      const precoUnitario = 49.90;
+      const precoTotalFormatado = "R$ " + (precoUnitario * qtdUnrankedSelecionada).toFixed(2).replace('.', ',');
+      comprar('Conta Unranked Nível 30', precoTotalFormatado, qtdUnrankedSelecionada, precoUnitario);
+    }
+
+    /* GERENCIADOR DE CHECKOUT */
+    function comprar(nomeProduto, precoProduto, quantidade = 1, unitario = null) {
+      const valorNumTotal = parseFloat(precoProduto.replace('R$ ', '').replace(',', '.'));
+      const valorUnitario = unitario ? unitario : (valorNumTotal / quantidade);
+
+      produtoAtualInfo = { 
+        nome: nomeProduto, 
+        preco: precoProduto, 
+        unitario: valorUnitario,
+        quantidade: quantidade 
+      };
+
+      const tituloItem = quantidade > 1 ? `${quantidade}x ${nomeProduto}` : nomeProduto;
+      document.getElementById('checkoutItemName').innerText = tituloItem;
       document.getElementById('checkoutItemPrice').innerText = precoProduto;
 
       renderizarCamposEtapa1(nomeProduto);
@@ -1045,7 +1090,7 @@
     async function avancarParaPagamento(event) {
       event.preventDefault();
       mudarEtapaCheckout(2);
-      await gerarCobrancaGateway(produtoAtualInfo.nome, produtoAtualInfo.preco);
+      await gerarCobrancaGateway(produtoAtualInfo.nome, produtoAtualInfo.unitario, produtoAtualInfo.quantidade);
     }
 
     /* MONITORAMENTO AUTOMÁTICO DE STATUS (POLLING A CADA 4 SEGUNDOS) */
@@ -1059,7 +1104,7 @@
 
           if (data.status === 'PAID' || data.status === 'APPROVED') {
             clearInterval(checagemPagamentoInterval);
-            confirmarPagamentoSucesso(); // Avança automaticamente para a Etapa 3!
+            confirmarPagamentoSucesso();
           }
         } catch (err) {
           console.error('Erro na checagem do status:', err);
@@ -1068,8 +1113,7 @@
     }
 
     /* CONEXÃO COM O BACKEND (BRAVOPAY) E DISPARO DO POLLING */
-    async function gerarCobrancaGateway(nomeProduto, precoProduto) {
-      const precoNumero = parseFloat(precoProduto.replace('R$ ', '').replace(',', '.'));
+    async function gerarCobrancaGateway(nomeProduto, precoUnitario, quantidade = 1) {
       const emailCliente = document.getElementById('custEmail')?.value || 'cliente@teste.com';
 
       try {
@@ -1083,7 +1127,8 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ 
             produto: nomeProduto, 
-            valor: precoNumero,
+            valor: precoUnitario,
+            quantidade: quantidade,
             nomeCliente: 'Cliente Perfect Smurf', 
             emailCliente: emailCliente
           })
@@ -1095,7 +1140,6 @@
           idPagamentoAtual = dados.id_pagamento;
           document.getElementById('pixCopiaColaInput').value = dados.pix_copia_cola;
 
-          // Exibe o QR Code recebido ou gera dinamicamente a partir do texto PIX Copia e Cola
           if (dados.qr_code_base64 && dados.qr_code_base64.trim() !== '') {
             document.getElementById('pixQrImage').src = dados.qr_code_base64.startsWith('http') || dados.qr_code_base64.startsWith('data:')
               ? dados.qr_code_base64 
@@ -1105,8 +1149,6 @@
           }
 
           iniciarTimerPix(900);
-
-          // Inicia o monitoramento de confirmação em tempo real
           monitorarStatusPagamento(dados.id_pagamento);
         } else {
           alert("Erro ao gerar pagamento: " + (dados.mensagem || "Erro desconhecido"));
@@ -1191,6 +1233,7 @@
 
       let summaryHtml = `
         <p><strong>Produto:</strong> ${produtoAtualInfo.nome}</p>
+        <p><strong>Quantidade:</strong> ${produtoAtualInfo.quantidade}x</p>
         <p><strong>E-mail cadastrado:</strong> ${email}</p>
         <p><strong>Discord:</strong> ${discord}</p>
       `;
@@ -1200,7 +1243,7 @@
         summaryHtml += `<p><strong>Posição Flash:</strong> Tecla ${flash}</p>`;
         summaryHtml += `<p style="color: var(--primary); margin-top: 8px;">🚀 O booster foi notificado e iniciará seu serviço em breve!</p>`;
       } else {
-        summaryHtml += `<p style="color: var(--primary); margin-top: 8px;">📦 Dados de acesso enviados instantaneamente para o seu e-mail!</p>`;
+        summaryHtml += `<p style="color: var(--primary); margin-top: 8px;">📦 Dados de acesso (${produtoAtualInfo.quantidade}x) enviados instantaneamente para o seu e-mail!</p>`;
       }
 
       document.getElementById('successSummaryContent').innerHTML = summaryHtml;
@@ -1336,14 +1379,25 @@
         <span class="card-tag" style="background: var(--primary);">MELHOR PREÇO</span>
         <span class="card-level-tag">NÍVEL 30 • UNRANKED BR</span>
         <h3>CONTA UNRANKED</h3>
-        <div class="price">R$ 49,90</div>
+        <div class="price" id="unrankedPriceDisplay">R$ 49,90</div>
+        
         <ul class="features">
           <li><strong>Nível:</strong> 30 Unranked (MMR Limpo)</li>
           <li>Até <strong>40.000+ EA</strong> (Espólios inclusos)</li>
           <li>Até 4 fragmentos de skin</li>
           <li>Pronta para ranked imediatamente</li>
         </ul>
-        <button class="btn-main" onclick="comprar('Conta Unranked Nível 30', 'R$ 49,90')">Comprar Agora</button>
+
+        <div class="qty-selector-container">
+          <span class="qty-label">Quantidade:</span>
+          <div class="qty-controls">
+            <button class="btn-qty" onclick="alterarQtdUnranked(-1)">-</button>
+            <span class="qty-display" id="unrankedQtdDisplay">1</span>
+            <button class="btn-qty" onclick="alterarQtdUnranked(1)">+</button>
+          </div>
+        </div>
+
+        <button class="btn-main" onclick="comprarUnranked()">Comprar Agora</button>
         <div class="card-footer-info"><span>⚡ Entrega instantânea</span><span>Garantia completa de 30 dias</span></div>
       </div>
     `;
@@ -1370,6 +1424,7 @@
         tabRanked.classList.remove('active');
         rankFilterBox.style.display = 'none';
         document.getElementById('accountsGrid').innerHTML = contasUnrankedHTML;
+        qtdUnrankedSelecionada = 1;
       } else {
         tabRanked.classList.add('active');
         tabUnranked.classList.remove('active');
@@ -1394,7 +1449,7 @@
             <li>Acesso total ao e-mail cadastrado</li>
             <li>Pronta para entrega imediata</li>
           </ul>
-          <button class="btn-main" onclick="comprar('${dados.titulo}', '${dados.preco}')">Comprar Agora</button>
+          <button class="btn-main" onclick="comprar('${dados.titulo}', '${dados.preco}', 1)">Comprar Agora</button>
           <div class="card-footer-info"><span>⚡ Entrega instantânea</span><span>Garantia completa de 30 dias</span></div>
         </div>
       `;
@@ -1559,7 +1614,7 @@
       calcularBoost();
       carregarFeedbacks();
       atualizarBarraUsuario();
-      setTimeout(dispararToastAleatorio, 4000); // Primeiro toast após 4s
+      setTimeout(dispararToastAleatorio, 4000);
     };
   </script>
 </body>
