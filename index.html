@@ -43,10 +43,10 @@
 
     /* Navegação Desktop */
     .nav-container { display: flex; align-items: center; gap: 20px; }
-    .nav-links { display: flex; align-items: center; gap: 12px; list-style: none; }
+    .nav-links { display: flex; align-items: center; gap: 10px; list-style: none; }
     .nav-links a {
       color: var(--text); text-decoration: none; font-weight: 600; font-size: 0.95rem;
-      padding: 8px 12px; border-radius: 6px; transition: all 0.3s ease;
+      padding: 8px 10px; border-radius: 6px; transition: all 0.3s ease;
       white-space: nowrap; display: inline-flex; align-items: center; gap: 6px;
       position: relative;
     }
@@ -55,7 +55,7 @@
       text-shadow: 0 0 10px rgba(0, 210, 255, 0.5);
     }
 
-    .header-auth-btns { display: flex; align-items: center; gap: 10px; margin-left: 10px; }
+    .header-auth-btns { display: flex; align-items: center; gap: 10px; margin-left: 8px; }
     .btn-hdr-login {
       background: #0f172a; border: 1px solid rgba(0, 210, 255, 0.3); color: #fff;
       padding: 8px 18px; border-radius: 6px; font-weight: 700; cursor: pointer; transition: 0.3s;
@@ -152,6 +152,63 @@
     .qty-display { font-family: 'Orbitron', sans-serif; font-size: 1.2rem; font-weight: 800; color: #fff; min-width: 28px; text-align: center; }
 
     .card-footer-info { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted); margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 10px; }
+
+    /* ===== SEÇÃO: PROVAS REAIS & VITRINE DO CLIENTE ===== */
+    .proofs-section {
+      background: linear-gradient(180deg, rgba(8, 11, 18, 0.95) 0%, rgba(13, 19, 34, 0.95) 100%);
+      border-top: 1px solid rgba(0, 210, 255, 0.12);
+      border-bottom: 1px solid rgba(0, 210, 255, 0.12);
+    }
+    .proofs-subtitle {
+      text-align: center; color: var(--text-muted); font-size: 1.05rem;
+      max-width: 680px; margin: -15px auto 40px auto;
+    }
+    .proof-card {
+      background: var(--card-bg); border: 1px solid rgba(0, 210, 255, 0.18);
+      border-radius: 10px; overflow: hidden; display: flex; flex-direction: column;
+      transition: 0.3s;
+    }
+    .proof-card:hover {
+      border-color: var(--primary); transform: translateY(-4px);
+      box-shadow: 0 12px 30px rgba(0, 210, 255, 0.18);
+    }
+    .proof-preview {
+      background: linear-gradient(135deg, #0b1324 0%, #101d36 100%);
+      border-bottom: 1px solid rgba(0, 210, 255, 0.15);
+      padding: 18px; position: relative; min-height: 165px;
+      display: flex; flex-direction: column; justify-content: space-between;
+    }
+    .proof-preview img {
+      width: 100%; height: 180px; object-fit: cover; border-radius: 6px;
+    }
+    .proof-badge-verified {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4);
+      color: var(--success); font-size: 0.75rem; font-weight: 700;
+      padding: 3px 10px; border-radius: 20px; width: fit-content;
+    }
+    .client-hud-box {
+      background: rgba(6, 10, 18, 0.85); border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px; padding: 12px; margin-top: 10px;
+    }
+    .hud-stat-row {
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 0.88rem; padding: 4px 0; border-bottom: 1px dashed rgba(255,255,255,0.06);
+    }
+    .hud-stat-row:last-child { border-bottom: none; }
+    .hud-stat-label { color: var(--text-muted); }
+    .hud-stat-val { font-family: 'Orbitron', sans-serif; font-weight: 700; color: var(--primary); font-size: 0.85rem; }
+    .proof-body { padding: 20px; flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
+    .proof-body h3 { font-family: 'Orbitron', sans-serif; font-size: 1.15rem; color: #fff; margin-bottom: 8px; }
+    .proof-body p { color: var(--text-muted); font-size: 0.92rem; line-height: 1.45; margin-bottom: 15px; }
+    .discord-verify-banner {
+      margin-top: 35px; background: rgba(88, 101, 242, 0.1);
+      border: 1px solid rgba(88, 101, 242, 0.4); border-radius: 10px;
+      padding: 22px 28px; display: flex; flex-wrap: wrap; justify-content: space-between;
+      align-items: center; gap: 20px;
+    }
+    .discord-verify-text h4 { font-family: 'Orbitron', sans-serif; font-size: 1.15rem; color: #fff; margin-bottom: 4px; }
+    .discord-verify-text p { color: var(--text-muted); font-size: 0.95rem; }
 
     /* POR QUE COMPRAR UMA CONTA SMURF */
     .why-smurf-section {
@@ -329,12 +386,32 @@
     .toast-text strong { color: var(--accent); display: block; }
     .toast-time { font-size: 0.7rem; color: var(--text-muted); margin-top: 2px; display: block; }
 
+    /* ===== BOTÃO FLUTUANTE DE SUPORTE AO VIVO (DISCORD) ===== */
+    .discord-float-btn {
+      position: fixed; bottom: 84px; right: 25px;
+      background: var(--discord);
+      color: #fff; text-decoration: none; border-radius: 50px;
+      padding: 12px 20px; font-weight: 700; font-size: 0.95rem;
+      box-shadow: 0 0 22px rgba(88, 101, 242, 0.55);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      z-index: 1000; transition: 0.3s;
+      display: flex; align-items: center; gap: 9px;
+    }
+    .discord-float-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 32px rgba(88, 101, 242, 0.9);
+    }
+    .online-dot {
+      width: 9px; height: 9px; background: var(--success); border-radius: 50%;
+      box-shadow: 0 0 8px var(--success); flex-shrink: 0;
+    }
+
     /* WIDGET DE AJUDA & ASSISTENTE VIRTUAL */
     .chat-widget-btn {
       position: fixed; bottom: 25px; right: 25px;
       background: linear-gradient(45deg, var(--secondary), var(--primary));
       color: #fff; border: none; border-radius: 50px;
-      padding: 14px 22px; font-weight: 700; font-size: 1rem;
+      padding: 13px 22px; font-weight: 700; font-size: 0.98rem;
       box-shadow: 0 0 20px rgba(0, 210, 255, 0.5);
       cursor: pointer; z-index: 1000; transition: 0.3s;
       display: flex; align-items: center; gap: 10px;
@@ -342,7 +419,7 @@
     .chat-widget-btn:hover { transform: scale(1.05); box-shadow: 0 0 30px rgba(0, 210, 255, 0.8); }
 
     .chat-box {
-      position: fixed; bottom: 85px; right: 25px; width: 360px; height: 530px;
+      position: fixed; bottom: 142px; right: 25px; width: 360px; height: 480px;
       background: #0d121d; border: 1px solid rgba(0, 210, 255, 0.3); border-radius: 14px;
       box-shadow: 0 15px 50px rgba(0,0,0,0.9); display: none; flex-direction: column;
       z-index: 1000; overflow: hidden; color: #fff;
@@ -358,7 +435,7 @@
     .chat-close-btn:hover { color: #fff; }
 
     .chat-sub-header { padding: 0 20px 10px 20px; background: #121927; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
-    .chat-sub-header h3 { font-size: 1.6rem; font-weight: 900; margin-bottom: 8px; }
+    .chat-sub-header h3 { font-size: 1.45rem; font-weight: 900; margin-bottom: 8px; }
     .assistant-tag { display: inline-flex; align-items: center; gap: 6px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; }
 
     .chat-content { flex: 1; padding: 15px 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
@@ -420,17 +497,17 @@
     <div class="nav-container" id="navContainer">
       <ul class="nav-links">
         <li><a href="#catalogo" onclick="fecharMobileMenu()">Contas Smurf</a></li>
+        <li><a href="#provas" onclick="fecharMobileMenu()">Provas Reais</a></li>
         <li><a href="#eloboost" onclick="fecharMobileMenu()">Elo Boost</a></li>
         <li><a href="#duoboost" onclick="fecharMobileMenu()">Duo Boost</a></li>
         <li><a href="#faq" onclick="fecharMobileMenu()">Dúvidas (FAQ)</a></li>
         <li><a href="#feedbacks" onclick="fecharMobileMenu()">Avaliações</a></li>
-        <li><a href="#garantia" onclick="fecharMobileMenu()">Garantia</a></li>
         <li>
-          <a href="https://discord.gg/Ec2bRRAut" target="_blank" style="color: var(--discord);">
+          <a href="https://discord.gg/Ec2bRRAut" target="_blank" class="discord-link" style="color: var(--discord);">
             <svg class="discord-icon" viewBox="0 0 127.14 96.36">
               <path d="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.89,105.89,0,0,0,19.39,8.09C2.79,32.65-1.71,56.6.54,80.21h0A105.73,105.73,0,0,0,32.71,96.36,77.7,77.7,0,0,0,39.6,85.25a68.42,68.42,0,0,1-10.85-5.18c.91-.66,1.8-1.34,2.66-2a73.51,73.51,0,0,0,64.32,0c.87.68,1.76,1.36,2.66,2a68.68,68.68,0,0,1-10.87,5.19,77,77,0,0,0,6.89,11.1A105.25,105.25,0,0,0,126.6,80.22h0C129.24,52.84,121.5,29.11,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53s5-12.74,11.43-12.74S54,45.91,53.89,53,48.84,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.25,60,73.25,53s5-12.74,11.44-12.74S96.23,45.91,96.12,53,91.08,65.69,84.69,65.69Z"/>
             </svg>
-            Suporte
+            Discord
           </a>
         </li>
       </ul>
@@ -473,6 +550,117 @@
     </div>
 
     <div class="grid" id="accountsGrid"></div>
+  </section>
+
+  <!-- ===== SEÇÃO: PROVAS REAIS & VITRINE DO CLIENTE ===== -->
+  <section class="proofs-section" id="provas">
+    <h2 class="section-title">Vitrine Real & <span>Entregas Comprovadas</span></h2>
+    <p class="proofs-subtitle">
+      Transparência total antes da compra: confira as especificações reais das nossas contas em estoque e acompanhe resultados ao vivo no nosso Discord oficial.
+    </p>
+
+    <div class="grid">
+      <!-- Prova 1: Conta Unranked Nível 30 -->
+      <div class="proof-card">
+        <div class="proof-preview">
+          <span class="proof-badge-verified">✔ ESTOQUE VERIFICADO • BR</span>
+          <!-- Para usar um print real do cliente LoL, substitua a div abaixo por: <img src="print-conta-40k.png" alt="Conta Unranked 40k EA"> -->
+          <div class="client-hud-box">
+            <div class="hud-stat-row">
+              <span class="hud-stat-label">Nível da Conta</span>
+              <span class="hud-stat-val">LVL 30+</span>
+            </div>
+            <div class="hud-stat-row">
+              <span class="hud-stat-label">Essência Azul</span>
+              <span class="hud-stat-val" style="color: var(--accent);">40.000+ EA</span>
+            </div>
+            <div class="hud-stat-row">
+              <span class="hud-stat-label">Histórico Ranked</span>
+              <span class="hud-stat-val" style="color: var(--success);">UNRANKED (0J)</span>
+            </div>
+          </div>
+        </div>
+        <div class="proof-body">
+          <div>
+            <h3>Conta Unranked • 40k+ EA</h3>
+            <p>Pronta para entrar direto na fila ranqueada com Essência Azul suficiente para habilitar seus principais campeões e e-mail alterável.</p>
+          </div>
+          <a href="#catalogo" class="btn-main" style="padding: 10px; font-size: 0.9rem;">Garantir Minha Conta</a>
+        </div>
+      </div>
+
+      <!-- Prova 2: Resultado de Elo Boost -->
+      <div class="proof-card">
+        <div class="proof-preview">
+          <span class="proof-badge-verified">✔ BOOST CONCLUÍDO • HIGH ELO</span>
+          <!-- Para usar um print real do histórico de partidas, substitua a div abaixo por: <img src="print-boost.png" alt="Histórico de Vitórias Elo Boost"> -->
+          <div class="client-hud-box">
+            <div class="hud-stat-row">
+              <span class="hud-stat-label">Subida Realizada</span>
+              <span class="hud-stat-val">PRATA II → ESMERALDA IV</span>
+            </div>
+            <div class="hud-stat-row">
+              <span class="hud-stat-label">Taxa de Vitória</span>
+              <span class="hud-stat-val" style="color: var(--success);">14V - 1D (93% WR)</span>
+            </div>
+            <div class="hud-stat-row">
+              <span class="hud-stat-label">Segurança</span>
+              <span class="hud-stat-val">VPN + MODO OFFLINE</span>
+            </div>
+          </div>
+        </div>
+        <div class="proof-body">
+          <div>
+            <h3>Subida Rápida e Discreta</h3>
+            <p>Nossos boosters jogam em modo offline com proteção de IP e respeitam a posição do seu Flash (D ou F) durante todo o serviço.</p>
+          </div>
+          <a href="#eloboost" class="btn-main" style="padding: 10px; font-size: 0.9rem;">Simular Meu Elo</a>
+        </div>
+      </div>
+
+      <!-- Prova 3: Atendimento & Histórico no Discord -->
+      <div class="proof-card">
+        <div class="proof-preview">
+          <span class="proof-badge-verified">✔ COMUNIDADE & SUPORTE ATIVO</span>
+          <div class="client-hud-box">
+            <div class="hud-stat-row">
+              <span class="hud-stat-label">Canal de Resultados</span>
+              <span class="hud-stat-val">#boosts-concluidos</span>
+            </div>
+            <div class="hud-stat-row">
+              <span class="hud-stat-label">Clientes Reais</span>
+              <span class="hud-stat-val">#avaliacoes</span>
+            </div>
+            <div class="hud-stat-row">
+              <span class="hud-stat-label">Atendimento Voz</span>
+              <span class="hud-stat-val" style="color: var(--success);">SALA DE ESPERA ON</span>
+            </div>
+          </div>
+        </div>
+        <div class="proof-body">
+          <div>
+            <h3>Valide Antes de Pagar</h3>
+            <p>Ficou com alguma dúvida? Entre no nosso servidor oficial, confira os prints das entregas recentes ou fale em voz com nossa equipe.</p>
+          </div>
+          <a href="https://discord.gg/Ec2bRRAut" target="_blank" class="btn-main discord-link" style="background: var(--discord); box-shadow: 0 0 18px rgba(88, 101, 242, 0.45); padding: 10px; font-size: 0.9rem;">
+            Abrir Discord Oficial
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="discord-verify-banner">
+      <div class="discord-verify-text">
+        <h4>💬 Quer tirar uma dúvida ao vivo antes de gerar o PIX?</h4>
+        <p>Nossa equipe atende em tempo real via chat ou chamada de voz no servidor oficial da Perfect Smurf.</p>
+      </div>
+      <a href="https://discord.gg/Ec2bRRAut" target="_blank" class="btn-main discord-link" style="background: var(--discord); width: auto; padding: 12px 24px; box-shadow: 0 0 20px rgba(88, 101, 242, 0.5);">
+        <svg class="discord-icon" viewBox="0 0 127.14 96.36">
+          <path d="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.89,105.89,0,0,0,19.39,8.09C2.79,32.65-1.71,56.6.54,80.21h0A105.73,105.73,0,0,0,32.71,96.36,77.7,77.7,0,0,0,39.6,85.25a68.42,68.42,0,0,1-10.85-5.18c.91-.66,1.8-1.34,2.66-2a73.51,73.51,0,0,0,64.32,0c.87.68,1.76,1.36,2.66,2a68.68,68.68,0,0,1-10.87,5.19,77,77,0,0,0,6.89,11.1A105.25,105.25,0,0,0,126.6,80.22h0C129.24,52.84,121.5,29.11,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53s5-12.74,11.43-12.74S54,45.91,53.89,53,48.84,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.25,60,73.25,53s5-12.74,11.44-12.74S96.23,45.91,96.12,53,91.08,65.69,84.69,65.69Z"/>
+        </svg>
+        Entrar no Discord Agora
+      </a>
+    </div>
   </section>
 
   <!-- SEÇÃO: POR QUE COMPRAR UMA CONTA SMURF -->
@@ -725,7 +913,7 @@
       </div>
 
       <div>
-        <a href="https://discord.gg/Ec2bRRAut" target="_blank" class="btn-main" style="background: var(--discord); text-shadow: none; font-size: 0.95rem; padding: 12px 24px; width: auto;">
+        <a href="https://discord.gg/Ec2bRRAut" target="_blank" class="btn-main discord-link" style="background: var(--discord); text-shadow: none; font-size: 0.95rem; padding: 12px 24px; width: auto;">
           <svg class="discord-icon" viewBox="0 0 127.14 96.36">
             <path d="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.89,105.89,0,0,0,19.39,8.09C2.79,32.65-1.71,56.6.54,80.21h0A105.73,105.73,0,0,0,32.71,96.36,77.7,77.7,0,0,0,39.6,85.25a68.42,68.42,0,0,1-10.85-5.18c.91-.66,1.8-1.34,2.66-2a73.51,73.51,0,0,0,64.32,0c.87.68,1.76,1.36,2.66,2a68.68,68.68,0,0,1-10.87,5.19,77,77,0,0,0,6.89,11.1A105.25,105.25,0,0,0,126.6,80.22h0C129.24,52.84,121.5,29.11,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53s5-12.74,11.43-12.74S54,45.91,53.89,53,48.84,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.25,60,73.25,53s5-12.74,11.44-12.74S96.23,45.91,96.12,53,91.08,65.69,84.69,65.69Z"/>
           </svg>
@@ -878,6 +1066,10 @@
         <button id="btnVerificarPagamento" class="btn-submit-orange" style="margin-top: 15px; background: rgba(0, 210, 255, 0.15); border: 1px solid var(--primary);" onclick="verificarPagamentoManual()">
           🔍 JÁ EFETUEI O PAGAMENTO
         </button>
+
+        <p style="text-align: center; font-size: 0.82rem; color: var(--text-muted); margin-top: 12px;">
+          Dúvidas antes de pagar? <a href="https://discord.gg/Ec2bRRAut" target="_blank" class="discord-link" style="color: #8ea1e1; font-weight: 700; text-decoration: none;">Fale ao vivo no Discord ↗</a>
+        </p>
       </div>
 
       <!-- ETAPA 3: CONFIRMAÇÃO & AGENDAMENTO -->
@@ -889,7 +1081,7 @@
 
           <div class="data-summary-list" id="successSummaryContent"></div>
 
-          <a href="https://discord.gg/Ec2bRRAut" target="_blank" class="btn-main" style="background: var(--discord); box-shadow: 0 0 20px rgba(88, 101, 242, 0.4); margin-top: 15px;">
+          <a href="https://discord.gg/Ec2bRRAut" target="_blank" class="btn-main discord-link" style="background: var(--discord); box-shadow: 0 0 20px rgba(88, 101, 242, 0.4); margin-top: 15px;">
             <svg class="discord-icon" viewBox="0 0 127.14 96.36">
               <path d="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.89,105.89,0,0,0,19.39,8.09C2.79,32.65-1.71,56.6.54,80.21h0A105.73,105.73,0,0,0,32.71,96.36,77.7,77.7,0,0,0,39.6,85.25a68.42,68.42,0,0,1-10.85-5.18c.91-.66,1.8-1.34,2.66-2a73.51,73.51,0,0,0,64.32,0c.87.68,1.76,1.36,2.66,2a68.68,68.68,0,0,1-10.87,5.19,77,77,0,0,0,6.89,11.1A105.25,105.25,0,0,0,126.6,80.22h0C129.24,52.84,121.5,29.11,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53s5-12.74,11.43-12.74S54,45.91,53.89,53,48.84,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.25,60,73.25,53s5-12.74,11.44-12.74S96.23,45.91,96.12,53,91.08,65.69,84.69,65.69Z"/>
             </svg>
@@ -900,6 +1092,15 @@
 
     </div>
   </div>
+
+  <!-- ===== BOTÃO FLUTUANTE DE SUPORTE AO VIVO (DISCORD) ===== -->
+  <a href="https://discord.gg/Ec2bRRAut" target="_blank" class="discord-float-btn discord-link" title="Fale ao vivo com nossa equipe no Discord">
+    <span class="online-dot"></span>
+    <svg class="discord-icon" viewBox="0 0 127.14 96.36">
+      <path d="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.89,105.89,0,0,0,19.39,8.09C2.79,32.65-1.71,56.6.54,80.21h0A105.73,105.73,0,0,0,32.71,96.36,77.7,77.7,0,0,0,39.6,85.25a68.42,68.42,0,0,1-10.85-5.18c.91-.66,1.8-1.34,2.66-2a73.51,73.51,0,0,0,64.32,0c.87.68,1.76,1.36,2.66,2a68.68,68.68,0,0,1-10.87,5.19,77,77,0,0,0,6.89,11.1A105.25,105.25,0,0,0,126.6,80.22h0C129.24,52.84,121.5,29.11,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53s5-12.74,11.43-12.74S54,45.91,53.89,53,48.84,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.25,60,73.25,53s5-12.74,11.44-12.74S96.23,45.91,96.12,53,91.08,65.69,84.69,65.69Z"/>
+    </svg>
+    Discord ao Vivo
+  </a>
 
   <!-- ===== WIDGET DE AJUDA ===== -->
   <button class="chat-widget-btn" onclick="toggleChat()">💬 Ajuda</button>
@@ -953,6 +1154,9 @@
   </div>
 
   <script>
+    // Cole aqui o novo link permanente do Discord caso gere um novo convite
+    const DISCORD_INVITE_URL = "https://discord.gg/Ec2bRRAut";
+
     let timerInterval = null;
     let checagemPagamentoInterval = null;
     let produtoAtualInfo = { nome: '', preco: '', unitario: 0, quantidade: 1 };
@@ -1666,6 +1870,9 @@
     }
 
     window.onload = function() {
+      document.querySelectorAll('.discord-link').forEach(el => {
+        el.href = DISCORD_INVITE_URL;
+      });
       selecionarTipoConta('unranked');
       calcularBoost();
       carregarFeedbacks();
