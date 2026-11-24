@@ -346,6 +346,51 @@
     .forgot-link { display: block; text-align: right; color: var(--primary); font-size: 0.85rem; font-weight: 700; text-decoration: none; margin-top: 8px; margin-bottom: 20px; }
     .forgot-link:hover { text-decoration: underline; text-shadow: 0 0 8px rgba(0, 210, 255, 0.6); }
 
+    .auth-error-box {
+      display: none;
+      background: rgba(239, 68, 68, 0.14);
+      border: 1px solid rgba(239, 68, 68, 0.55);
+      color: #fca5a5;
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      margin-top: -10px;
+      margin-bottom: 16px;
+      line-height: 1.35;
+    }
+    .auth-error-box.show {
+      display: block;
+    }
+
+    .site-toast {
+      position: fixed;
+      top: 82px;
+      right: 25px;
+      background: #0d1322;
+      border: 1px solid var(--primary);
+      border-radius: 10px;
+      padding: 12px 18px;
+      color: #fff;
+      font-size: 0.9rem;
+      font-weight: 600;
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.65);
+      z-index: 2200;
+      display: none;
+      max-width: 340px;
+    }
+    .site-toast.show {
+      display: block;
+    }
+    .site-toast.error {
+      border-color: #ef4444;
+      color: #fca5a5;
+    }
+    .site-toast.success {
+      border-color: var(--success);
+      color: #a7f3d0;
+    }
+
     .checkbox-container { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 25px; cursor: pointer; }
     .checkbox-container input { margin-top: 3px; accent-color: var(--primary); width: 16px; height: 16px; flex-shrink: 0; }
     .checkbox-label strong { display: block; color: #fff; font-size: 0.9rem; }
@@ -634,6 +679,7 @@
       .hero h1 { font-size: 2.2rem; }
       .cookie-banner { left: 15px; right: 15px; bottom: 15px; max-width: none; }
       .purchase-toast { left: 15px; right: 15px; bottom: 15px; max-width: none; }
+      .site-toast { left: 15px; right: 15px; top: 76px; max-width: none; }
       .discord-float-btn { bottom: 78px; right: 15px; padding: 10px 16px; font-size: 0.88rem; }
       .chat-widget-btn { bottom: 18px; right: 15px; padding: 11px 18px; font-size: 0.9rem; }
       .chat-box { right: 15px; left: 15px; width: auto; bottom: 132px; }
@@ -1159,15 +1205,17 @@
       <form id="loginFormV2" onsubmit="realizarLogin(event)">
         <div class="form-group">
           <label>E-MAIL</label>
-          <input type="email" id="loginEmail" class="form-control" placeholder="seuemail@exemplo.com" required>
+          <input type="email" id="loginEmail" class="form-control" placeholder="seuemail@exemplo.com" oninput="limparErroLogin()" required>
         </div>
 
         <div class="form-group">
           <label>SENHA</label>
-          <input type="password" id="loginPassword" class="form-control" required>
+          <input type="password" id="loginPassword" class="form-control" oninput="limparErroLogin()" required>
           <span class="toggle-pass" onclick="togglePasswordVisibility('loginPassword', this)">Mostrar</span>
           <a href="#" class="forgot-link" onclick="esqueciSenha(event)">Esqueci a senha</a>
         </div>
+
+        <div class="auth-error-box" id="loginErrorMsg" role="alert"></div>
 
         <label class="checkbox-container">
           <input type="checkbox" checked>
@@ -1224,6 +1272,9 @@
       </div>
     </div>
   </div>
+
+  <!-- ===== AVISO VISUAL NO SITE ===== -->
+  <div class="site-toast" id="siteToast" role="status" aria-live="polite"></div>
 
   <!-- ===== MODAL DE CHECKOUT DINÂMICO DE 3 ETAPAS ===== -->
   <div class="auth-modal" id="checkoutModal">
@@ -1401,6 +1452,7 @@
 
     let timerInterval = null;
     let checagemPagamentoInterval = null;
+    let siteToastTimeout = null;
     let produtoAtualInfo = {
       nome: '',
       nomeBase: '',
@@ -1412,6 +1464,36 @@
     };
     let idPagamentoAtual = null;
     let qtdUnrankedSelecionada = 1;
+
+    /* AVISOS NA INTERFACE DO SITE */
+    function mostrarAviso(mensagem, tipo = 'info') {
+      const toast = document.getElementById('siteToast');
+      if (!toast) return;
+
+      toast.className = 'site-toast show';
+      if (tipo === 'error') toast.classList.add('error');
+      if (tipo === 'success') toast.classList.add('success');
+      toast.textContent = mensagem;
+
+      if (siteToastTimeout) clearTimeout(siteToastTimeout);
+      siteToastTimeout = setTimeout(() => {
+        toast.classList.remove('show');
+      }, 4000);
+    }
+
+    function exibirErroLogin(mensagem) {
+      const box = document.getElementById('loginErrorMsg');
+      if (!box) return;
+      box.textContent = mensagem;
+      box.classList.add('show');
+    }
+
+    function limparErroLogin() {
+      const box = document.getElementById('loginErrorMsg');
+      if (!box) return;
+      box.textContent = '';
+      box.classList.remove('show');
+    }
 
     /* MODAL DE TERMOS E POLÍTICA DE PRIVACIDADE */
     function trocarAbaLegal(aba) {
@@ -1621,13 +1703,13 @@
     /* GERENCIADOR DE CHECKOUT */
     function comprar(nomeProduto, precoProduto, quantidade = 1, unitario = null) {
       if (!precoProduto || precoProduto.toLowerCase().includes('inválido')) {
-        alert('Selecione um Elo Desejado maior que o Elo Atual antes de contratar.');
+        mostrarAviso('Selecione um Elo Desejado maior que o Elo Atual antes de contratar.', 'error');
         return;
       }
 
       const valorNumTotal = parseFloat(precoProduto.replace('R$ ', '').replace(',', '.'));
       if (isNaN(valorNumTotal) || valorNumTotal <= 0) {
-        alert('Valor do serviço inválido.');
+        mostrarAviso('Valor do serviço inválido.', 'error');
         return;
       }
 
@@ -1818,7 +1900,7 @@
           inputPix.value = "Erro ao gerar PIX. Feche e tente novamente.";
           imgQr.src = "https://via.placeholder.com/190?text=Erro+no+PIX";
           if (statusText) statusText.innerText = "Não foi possível gerar o PIX no momento.";
-          alert("Erro ao gerar pagamento: " + msgErro);
+          mostrarAviso("Erro ao gerar pagamento: " + msgErro, "error");
         }
 
       } catch (erro) {
@@ -1847,9 +1929,9 @@
           return;
         }
 
-        alert('Ainda não identificamos a confirmação do seu PIX no sistema bancário.\n\nSe você já efetuou a transferência no aplicativo do seu banco, aguarde de 10 a 30 segundos para o processamento do PIX e tente novamente.');
+        mostrarAviso('PIX ainda não confirmado. Se já pagou, aguarde de 10 a 30 segundos e tente novamente.', 'error');
       } catch (err) {
-        alert('Não foi possível consultar o status agora. Aguarde alguns segundos.');
+        mostrarAviso('Não foi possível consultar o status agora. Aguarde alguns segundos.', 'error');
       } finally {
         btn.innerHTML = textoOriginal;
         btn.disabled = false;
@@ -1961,7 +2043,7 @@
       const rota = document.getElementById('agendamentoRota')?.value;
 
       if (!dataHora) {
-        alert("Por favor, selecione a data e o horário desejado.");
+        mostrarAviso("Por favor, selecione a data e o horário desejado.", "error");
         return;
       }
 
@@ -1980,23 +2062,25 @@
 
         const dados = await resposta.json();
         if (dados.sucesso) {
-          alert("Agendamento confirmado com sucesso! Nosso booster entrará em contato via Discord no horário selecionado.");
+          mostrarAviso("Agendamento confirmado com sucesso! Nosso booster entrará em contato via Discord.", "success");
         } else {
-          alert("Erro ao enviar agendamento. Entre em contato pelo Discord.");
+          mostrarAviso("Erro ao enviar agendamento. Entre em contato pelo Discord.", "error");
         }
       } catch (err) {
         console.error("Erro ao enviar agendamento:", err);
-        alert("Falha ao conectar com o servidor para agendar.");
+        mostrarAviso("Falha ao conectar com o servidor para agendar.", "error");
       }
     }
 
     /* AUTENTICAÇÃO VIA E-MAIL E SENHA */
     function abrirAuthModal(modo = 'login') {
+      limparErroLogin();
       document.getElementById('authModal').style.display = 'flex';
       alternarTelaAuth(modo);
     }
 
     function fecharAuthModal() {
+      limparErroLogin();
       document.getElementById('authModal').style.display = 'none';
     }
 
@@ -2010,6 +2094,8 @@
       const loginForm = document.getElementById('loginFormV2');
       const cadastroForm = document.getElementById('cadastroFormV2');
       const footerText = document.getElementById('authFooterText');
+
+      limparErroLogin();
 
       if (modo === 'login') {
         title.innerText = "Entrar";
@@ -2037,7 +2123,7 @@
 
     function esqueciSenha(e) {
       e.preventDefault();
-      alert("Instruções de redefinição enviadas para o seu e-mail!");
+      mostrarAviso("Instruções de redefinição enviadas para o seu e-mail!", "success");
     }
 
     function realizarCadastro(e) {
@@ -2048,14 +2134,14 @@
       const senhaConfirm = document.getElementById('cadPasswordConfirm').value;
 
       if (senha !== senhaConfirm) {
-        alert("As senhas não coincidem!");
+        mostrarAviso("As senhas não coincidem!", "error");
         return;
       }
 
       let usuarios = JSON.parse(localStorage.getItem('perfect_smurf_users')) || [];
 
       if (usuarios.some(u => u.email === email)) {
-        alert("Este e-mail já está cadastrado!");
+        mostrarAviso("Este e-mail já está cadastrado!", "error");
         return;
       }
 
@@ -2064,13 +2150,15 @@
       localStorage.setItem('perfect_smurf_users', JSON.stringify(usuarios));
       localStorage.setItem('perfect_smurf_session', JSON.stringify(novoUsuario));
 
-      alert("Conta criada com sucesso! Você está logado.");
       fecharAuthModal();
       atualizarBarraUsuario();
+      mostrarAviso("Conta criada com sucesso! Você está logado.", "success");
     }
 
     function realizarLogin(e) {
       e.preventDefault();
+      limparErroLogin();
+
       const email = document.getElementById('loginEmail').value.trim();
       const senha = document.getElementById('loginPassword').value;
 
@@ -2078,20 +2166,20 @@
       const user = usuarios.find(u => u.email === email && u.senha === senha);
 
       if (!user) {
-        alert("E-mail ou senha incorretos!");
+        exibirErroLogin("E-mail ou senha incorretos!");
         return;
       }
 
       localStorage.setItem('perfect_smurf_session', JSON.stringify(user));
-      alert("Login realizado com sucesso!");
       fecharAuthModal();
       atualizarBarraUsuario();
+      mostrarAviso("Login realizado com sucesso!", "success");
     }
 
     function encerrarSessao() {
       localStorage.removeItem('perfect_smurf_session');
       atualizarBarraUsuario();
-      alert("Sessão encerrada.");
+      mostrarAviso("Sessão encerrada.", "info");
     }
 
     function atualizarBarraUsuario() {
@@ -2252,7 +2340,7 @@
       document.getElementById('feedbackForm').reset();
       setRating(5);
       carregarFeedbacks();
-      alert("Obrigado pelo seu feedback!");
+      mostrarAviso("Obrigado pelo seu feedback!", "success");
     }
 
     /* CALCULADORA DE ELO BOOST */
