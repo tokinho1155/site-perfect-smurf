@@ -409,6 +409,35 @@
 
     .discord-icon { width: 18px; height: 18px; fill: currentColor; display: inline-block; vertical-align: middle; }
 
+    /* ===== BANNER DE COOKIES (LGPD) ===== */
+    .cookie-banner {
+      position: fixed; bottom: 25px; left: 25px;
+      background: #0d1322; border: 1px solid rgba(0, 210, 255, 0.35);
+      border-radius: 10px; padding: 16px 20px; max-width: 390px;
+      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.75); z-index: 1600;
+      display: none; flex-direction: column; gap: 12px;
+    }
+    .cookie-banner.show { display: flex; }
+    .cookie-banner-title {
+      font-family: 'Orbitron', sans-serif; font-size: 0.95rem; color: #fff;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .cookie-banner p { font-size: 0.85rem; color: var(--text-muted); line-height: 1.45; }
+    .cookie-banner-actions { display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap; }
+    .btn-cookie-essential {
+      background: transparent; border: 1px solid rgba(255, 255, 255, 0.18);
+      color: var(--text-muted); padding: 8px 14px; border-radius: 6px;
+      font-size: 0.82rem; font-weight: 700; cursor: pointer; transition: 0.2s;
+    }
+    .btn-cookie-essential:hover { border-color: #fff; color: #fff; }
+    .btn-cookie-accept {
+      background: linear-gradient(45deg, var(--secondary), var(--primary));
+      border: none; color: #fff; padding: 8px 16px; border-radius: 6px;
+      font-size: 0.82rem; font-weight: 700; cursor: pointer; transition: 0.2s;
+      box-shadow: 0 0 14px rgba(0, 210, 255, 0.35);
+    }
+    .btn-cookie-accept:hover { box-shadow: 0 0 22px rgba(0, 210, 255, 0.75); }
+
     /* ===== NOTIFICAÇÃO SOCIAL (TOAST DE COMPRA) ===== */
     .purchase-toast {
       position: fixed; bottom: 25px; left: 25px; background: #0d1322; border: 1px solid var(--primary);
@@ -511,6 +540,11 @@
       .nav-links a { width: 100%; padding: 12px; font-size: 1.05rem; }
       .header-auth-btns { flex-direction: column; width: 100%; margin-left: 0; margin-top: 20px; gap: 12px; }
       .btn-hdr-login, .btn-hdr-signup { width: 100%; text-align: center; padding: 12px; }
+    }
+
+    @media (max-width: 600px) {
+      .cookie-banner { left: 15px; right: 15px; bottom: 15px; max-width: none; }
+      .purchase-toast { left: 15px; right: 15px; bottom: 15px; max-width: none; }
     }
   </style>
 </head>
@@ -962,12 +996,25 @@
       <div class="badge-item"><span>⚡</span> Pagamento Instantâneo via PIX</div>
       <div class="badge-item"><span>🛡️</span> Garantia Total de 30 Dias</div>
       <div class="badge-item"><span>🌐</span> Proteção Anti-Ban VPN</div>
+      <div class="badge-item"><a href="#" onclick="reabrirBannerCookies(event)" style="color: var(--text-muted); text-decoration: none;">🍪 Preferências de Cookies</a></div>
     </div>
 
     <p style="font-size: 0.8rem; color: var(--text-muted); text-align: center; margin-top: 20px;">
       © 2026 PERFECT SMURF. Todos os direitos reservados. Não possuímos vínculo direto com a Riot Games.
     </p>
   </footer>
+
+  <!-- ===== BANNER DE COOKIES (LGPD) ===== -->
+  <div class="cookie-banner" id="cookieBanner" role="dialog" aria-label="Aviso de Cookies">
+    <div class="cookie-banner-title">🍪 Cookies & Preferências</div>
+    <p>
+      Utilizamos cookies e armazenamento local para manter sua sessão, lembrar seus dados no checkout e melhorar sua experiência no site.
+    </p>
+    <div class="cookie-banner-actions">
+      <button class="btn-cookie-essential" onclick="definirConsentimentoCookies('essential')">Apenas essenciais</button>
+      <button class="btn-cookie-accept" onclick="definirConsentimentoCookies('all')">Aceitar cookies</button>
+    </div>
+  </div>
 
   <!-- ===== TOAST DE NOTIFICAÇÃO SOCIAL (PROVA SOCIAL) ===== -->
   <div class="purchase-toast" id="purchaseToast">
@@ -1189,6 +1236,8 @@
 
   <script>
     const DISCORD_INVITE_URL = "https://discord.gg/s7H4mD7MMF";
+    const COOKIE_CONSENT_NAME = "ps_cookie_consent";
+    const CHECKOUT_PREFS_KEY = "ps_checkout_prefs";
 
     // Configuração da taxa opcional de Prioridade VIP no Elo Boost e Duo Boost
     const CONFIG_PRIORIDADE = {
@@ -1210,6 +1259,90 @@
     };
     let idPagamentoAtual = null;
     let qtdUnrankedSelecionada = 1;
+
+    /* GERENCIADOR DE COOKIES & PREFERÊNCIAS */
+    function setCookie(name, value, days = 180) {
+      const expires = new Date(Date.now() + days * 864e5).toUTCString();
+      document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/; SameSite=Lax`;
+    }
+
+    function getCookie(name) {
+      const match = document.cookie.match(new RegExp('(?:^|; )' + name.replace(/([.$?*|{}()[\]\\/+^])/g, '\\$1') + '=([^;]*)'));
+      return match ? decodeURIComponent(match[1]) : null;
+    }
+
+    function obterConsentimentoCookies() {
+      return getCookie(COOKIE_CONSENT_NAME) || localStorage.getItem(COOKIE_CONSENT_NAME);
+    }
+
+    function definirConsentimentoCookies(tipo) {
+      setCookie(COOKIE_CONSENT_NAME, tipo, 180);
+      try { localStorage.setItem(COOKIE_CONSENT_NAME, tipo); } catch (e) {}
+
+      if (tipo === 'essential') {
+        try { localStorage.removeItem(CHECKOUT_PREFS_KEY); } catch (e) {}
+      } else {
+        salvarPreferenciasCheckout();
+      }
+
+      document.getElementById('cookieBanner').classList.remove('show');
+    }
+
+    function reabrirBannerCookies(e) {
+      if (e) e.preventDefault();
+      document.getElementById('cookieBanner').classList.add('show');
+    }
+
+    function iniciarBannerCookies() {
+      if (!obterConsentimentoCookies()) {
+        setTimeout(() => {
+          document.getElementById('cookieBanner').classList.add('show');
+        }, 1200);
+      }
+    }
+
+    function salvarPreferenciasCheckout() {
+      if (obterConsentimentoCookies() !== 'all') return;
+
+      const atual = lerPreferenciasCheckout();
+      const email = document.getElementById('custEmail')?.value?.trim();
+      const discord = document.getElementById('custDiscord')?.value?.trim();
+      const riotId = document.getElementById('custRiotId')?.value?.trim();
+      const flash = document.getElementById('custFlash')?.value;
+
+      const dados = {
+        email: email !== undefined && email !== '' ? email : (atual.email || ''),
+        discord: discord !== undefined && discord !== '' ? discord : (atual.discord || ''),
+        riotId: riotId !== undefined && riotId !== '' ? riotId : (atual.riotId || ''),
+        flash: flash || atual.flash || 'D'
+      };
+
+      try {
+        localStorage.setItem(CHECKOUT_PREFS_KEY, JSON.stringify(dados));
+      } catch (e) {}
+    }
+
+    function lerPreferenciasCheckout() {
+      if (obterConsentimentoCookies() !== 'all') return {};
+      try {
+        return JSON.parse(localStorage.getItem(CHECKOUT_PREFS_KEY)) || {};
+      } catch (e) {
+        return {};
+      }
+    }
+
+    function aplicarPreferenciasCheckoutNoForm() {
+      const prefs = lerPreferenciasCheckout();
+      const emailEl = document.getElementById('custEmail');
+      const discordEl = document.getElementById('custDiscord');
+      const riotIdEl = document.getElementById('custRiotId');
+      const flashEl = document.getElementById('custFlash');
+
+      if (emailEl && prefs.email && !emailEl.value) emailEl.value = prefs.email;
+      if (discordEl && prefs.discord && !discordEl.value) discordEl.value = prefs.discord;
+      if (riotIdEl && prefs.riotId && !riotIdEl.value) riotIdEl.value = prefs.riotId;
+      if (flashEl && prefs.flash) flashEl.value = prefs.flash;
+    }
 
     function formatarReais(valor) {
       return `R$ ${Number(valor).toFixed(2).replace('.', ',')}`;
@@ -1246,6 +1379,7 @@
     ];
 
     function dispararToastAleatorio() {
+      if (document.getElementById('cookieBanner')?.classList.contains('show')) return;
       const toast = document.getElementById('purchaseToast');
       const item = toastsData[Math.floor(Math.random() * toastsData.length)];
 
@@ -1392,6 +1526,8 @@
           </div>
         `;
       }
+
+      aplicarPreferenciasCheckoutNoForm();
     }
 
     function mudarEtapaCheckout(etapa) {
@@ -1406,6 +1542,7 @@
 
     async function avancarParaPagamento(event) {
       event.preventDefault();
+      salvarPreferenciasCheckout();
       mudarEtapaCheckout(2);
       await gerarCobrancaGateway(produtoAtualInfo.nome, produtoAtualInfo.unitario, produtoAtualInfo.quantidade);
     }
@@ -1432,6 +1569,9 @@
     /* CONEXÃO COM O BACKEND (BRAVOPAY) E DISPARO DO POLLING */
     async function gerarCobrancaGateway(nomeProduto, precoUnitario, quantidade = 1) {
       const emailCliente = document.getElementById('custEmail')?.value || 'cliente@teste.com';
+      const discordCliente = document.getElementById('custDiscord')?.value?.trim() || '';
+      const riotIdCliente = document.getElementById('custRiotId')?.value?.trim() || '';
+      const flashCliente = document.getElementById('custFlash')?.value || '';
       const inputPix = document.getElementById('pixCopiaColaInput');
       const imgQr = document.getElementById('pixQrImage');
 
@@ -1449,7 +1589,11 @@
             valor: precoUnitario,
             quantidade: quantidade,
             nomeCliente: 'Cliente Perfect Smurf', 
-            emailCliente: emailCliente
+            emailCliente: emailCliente,
+            discordCliente: discordCliente,
+            riotIdCliente: riotIdCliente,
+            flashCliente: flashCliente,
+            prioridade: produtoAtualInfo.prioridade
           })
         });
 
@@ -2011,6 +2155,7 @@
       calcularBoost();
       carregarFeedbacks();
       atualizarBarraUsuario();
+      iniciarBannerCookies();
       setTimeout(dispararToastAleatorio, 4000);
     };
   </script>
