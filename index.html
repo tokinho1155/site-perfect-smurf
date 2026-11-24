@@ -1267,6 +1267,26 @@
         <button type="submit" class="btn-submit-orange">Cadastre-se</button>
       </form>
 
+      <form id="recuperarFormV2" onsubmit="redefinirSenhaDireto(event)" style="display: none;">
+        <div class="form-group">
+          <label>E-MAIL CADASTRADO</label>
+          <input type="email" id="recEmail" class="form-control" placeholder="seuemail@exemplo.com" required>
+        </div>
+
+        <div class="form-group">
+          <label>NOVA SENHA</label>
+          <input type="password" id="recPassword" class="form-control" placeholder="Crie uma nova senha" required>
+          <span class="toggle-pass" onclick="togglePasswordVisibility('recPassword', this)">Mostrar</span>
+        </div>
+
+        <div class="form-group">
+          <label>CONFIRMAR NOVA SENHA</label>
+          <input type="password" id="recPasswordConfirm" class="form-control" placeholder="Digite a nova senha novamente" required>
+        </div>
+
+        <button type="submit" class="btn-submit-orange">Redefinir Senha</button>
+      </form>
+
       <div class="auth-footer-text" id="authFooterText">
         Não tem conta? <a href="#" onclick="alternarTelaAuth('cadastro'); return false;">Cadastre-se</a>
       </div>
@@ -2093,6 +2113,7 @@
       const title = document.getElementById('authModalTitle');
       const loginForm = document.getElementById('loginFormV2');
       const cadastroForm = document.getElementById('cadastroFormV2');
+      const recuperarForm = document.getElementById('recuperarFormV2');
       const footerText = document.getElementById('authFooterText');
 
       limparErroLogin();
@@ -2101,12 +2122,27 @@
         title.innerText = "Entrar";
         loginForm.style.display = 'block';
         cadastroForm.style.display = 'none';
+        if (recuperarForm) recuperarForm.style.display = 'none';
         footerText.innerHTML = `Não tem conta? <a href="#" onclick="alternarTelaAuth('cadastro'); return false;">Cadastre-se</a>`;
-      } else {
+      } else if (modo === 'cadastro') {
         title.innerText = "Cadastre-se";
         loginForm.style.display = 'none';
         cadastroForm.style.display = 'block';
+        if (recuperarForm) recuperarForm.style.display = 'none';
         footerText.innerHTML = `Já tem uma conta? <a href="#" onclick="alternarTelaAuth('login'); return false;">Entrar</a>`;
+      } else if (modo === 'recuperar') {
+        title.innerText = "Recuperar Senha";
+        loginForm.style.display = 'none';
+        cadastroForm.style.display = 'none';
+        if (recuperarForm) recuperarForm.style.display = 'block';
+
+        const emailDigitado = document.getElementById('loginEmail')?.value?.trim();
+        const recEmailInput = document.getElementById('recEmail');
+        if (recEmailInput && emailDigitado) {
+          recEmailInput.value = emailDigitado;
+        }
+
+        footerText.innerHTML = `Lembrou a senha? <a href="#" onclick="alternarTelaAuth('login'); return false;">Voltar para Entrar</a>`;
       }
     }
 
@@ -2122,8 +2158,53 @@
     }
 
     function esqueciSenha(e) {
+      if (e) e.preventDefault();
+      alternarTelaAuth('recuperar');
+    }
+
+    function redefinirSenhaDireto(e) {
       e.preventDefault();
-      mostrarAviso("Instruções de redefinição enviadas para o seu e-mail!", "success");
+
+      const email = document.getElementById('recEmail').value.trim();
+      const novaSenha = document.getElementById('recPassword').value;
+      const confirmaSenha = document.getElementById('recPasswordConfirm').value;
+
+      if (novaSenha.length < 4) {
+        mostrarAviso("A nova senha deve ter pelo menos 4 caracteres.", "error");
+        return;
+      }
+
+      if (novaSenha !== confirmaSenha) {
+        mostrarAviso("As senhas não coincidem!", "error");
+        return;
+      }
+
+      let usuarios = JSON.parse(localStorage.getItem('perfect_smurf_users')) || [];
+      const indiceUsuario = usuarios.findIndex(u => u.email.toLowerCase() === email.toLowerCase());
+
+      if (indiceUsuario === -1) {
+        mostrarAviso("Nenhuma conta encontrada com esse e-mail.", "error");
+        return;
+      }
+
+      usuarios[indiceUsuario].senha = novaSenha;
+      localStorage.setItem('perfect_smurf_users', JSON.stringify(usuarios));
+
+      const sessaoAtual = JSON.parse(localStorage.getItem('perfect_smurf_session'));
+      if (sessaoAtual && sessaoAtual.email.toLowerCase() === email.toLowerCase()) {
+        sessaoAtual.senha = novaSenha;
+        localStorage.setItem('perfect_smurf_session', JSON.stringify(sessaoAtual));
+      }
+
+      document.getElementById('recuperarFormV2').reset();
+      alternarTelaAuth('login');
+
+      const loginEmailInput = document.getElementById('loginEmail');
+      const loginPassInput = document.getElementById('loginPassword');
+      if (loginEmailInput) loginEmailInput.value = email;
+      if (loginPassInput) loginPassInput.value = '';
+
+      mostrarAviso("Senha redefinida com sucesso! Agora faça login com a nova senha.", "success");
     }
 
     function realizarCadastro(e) {
@@ -2254,8 +2335,8 @@
         document.getElementById('accountsGrid').innerHTML = contasUnrankedHTML;
         qtdUnrankedSelecionada = 1;
       } else {
-        tabRanked.classList.add('active');
         tabUnranked.classList.remove('active');
+        tabRanked.classList.add('active');
         rankFilterBox.style.display = 'block';
         filtrarContasRanked();
       }
