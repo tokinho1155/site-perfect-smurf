@@ -1348,10 +1348,8 @@
       const ehBoost = nomeProduto.toLowerCase().includes('boost');
 
       if (ehBoost) {
-        const valorExtra = calcularAcrescimoPrioridade(produtoAtualInfo.unitarioBase);
-        const labelTaxa = CONFIG_PRIORIDADE.tipo === 'fixo'
-          ? `+ ${formatarReais(valorExtra)}`
-          : `+ ${Math.round(CONFIG_PRIORIDADE.valorPercentual * 100)}% (+ ${formatarReais(valorExtra)})`;
+        const valorExtra = calcularAcrescimoPrioridade(produtoAtualInfo.unitarioBase * produtoAtualInfo.quantidade);
+        const labelTaxa = `+ ${formatarReais(valorExtra)}`;
 
         container.innerHTML = `
           <div class="form-group">
