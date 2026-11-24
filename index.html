@@ -330,6 +330,9 @@
       display: none; align-items: center; justify-content: center; z-index: 2000;
       padding: 15px; overflow-y: auto;
     }
+    #legalModal {
+      z-index: 2100;
+    }
     .auth-card-v2 {
       background: #0d1322; border: 1px solid rgba(0, 210, 255, 0.3);
       border-radius: 12px; padding: 30px; width: 100%; max-width: 480px;
@@ -1096,8 +1099,8 @@
       <div class="badge-item"><span>⚡</span> Pagamento Instantâneo via PIX</div>
       <div class="badge-item"><span>🛡️</span> Garantia Total de 30 Dias</div>
       <div class="badge-item"><span>🌐</span> Proteção Anti-Ban VPN</div>
-      <div class="badge-item"><a href="#" onclick="abrirLegalModal('termos', event)" style="color: var(--text-muted); text-decoration: none;">📄 Termos de Uso</a></div>
-      <div class="badge-item"><a href="#" onclick="abrirLegalModal('privacidade', event)" style="color: var(--text-muted); text-decoration: none;">🛡️ Privacidade</a></div>
+      <div class="badge-item"><a href="#" onclick="event.stopPropagation(); abrirLegalModal('termos', event)" style="color: var(--text-muted); text-decoration: none;">📄 Termos de Uso</a></div>
+      <div class="badge-item"><a href="#" onclick="event.stopPropagation(); abrirLegalModal('privacidade', event)" style="color: var(--text-muted); text-decoration: none;">🛡️ Privacidade</a></div>
       <div class="badge-item"><a href="#" onclick="reabrirBannerCookies(event)" style="color: var(--text-muted); text-decoration: none;">🍪 Preferências de Cookies</a></div>
     </div>
 
@@ -1130,7 +1133,7 @@
 
   <!-- ===== MODAL DE TERMOS DE USO E POLÍTICA DE PRIVACIDADE ===== -->
   <div class="auth-modal" id="legalModal" onclick="fecharLegalModalFora(event)">
-    <div class="auth-card-v2" style="max-width: 580px;">
+    <div class="auth-card-v2" style="max-width: 580px;" onclick="event.stopPropagation()">
       <button class="chat-close-btn" style="position: absolute; top: 20px; right: 20px;" onclick="fecharLegalModal()">✕</button>
 
       <h2 id="legalModalTitle">Termos de <span>Uso</span></h2>
@@ -1205,9 +1208,9 @@
             <strong>Li e concordo com os Termos</strong>
             <span>
               Concordo com a
-              <a href="#" class="legal-inline-link" onclick="abrirLegalModal('privacidade', event)">Política de Privacidade</a>
+              <a href="#" class="legal-inline-link" onclick="event.stopPropagation(); abrirLegalModal('privacidade', event)">Política de Privacidade</a>
               e os
-              <a href="#" class="legal-inline-link" onclick="abrirLegalModal('termos', event)">Termos de Uso</a>
+              <a href="#" class="legal-inline-link" onclick="event.stopPropagation(); abrirLegalModal('termos', event)">Termos de Uso</a>
               do site.
             </span>
           </div>
@@ -1424,7 +1427,10 @@
     }
 
     function abrirLegalModal(aba = 'termos', event = null) {
-      if (event) event.preventDefault();
+      if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
       trocarAbaLegal(aba);
       document.getElementById('legalModal').style.display = 'flex';
     }
