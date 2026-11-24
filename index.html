@@ -300,11 +300,13 @@
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: rgba(4, 7, 13, 0.92); backdrop-filter: blur(10px);
       display: none; align-items: center; justify-content: center; z-index: 2000;
+      padding: 15px; overflow-y: auto;
     }
     .auth-card-v2 {
       background: #0d1322; border: 1px solid rgba(0, 210, 255, 0.3);
-      border-radius: 12px; padding: 35px; width: 100%; max-width: 480px;
+      border-radius: 12px; padding: 30px; width: 100%; max-width: 480px;
       box-shadow: 0 0 40px rgba(0, 210, 255, 0.25); position: relative; color: #fff;
+      max-height: 92vh; overflow-y: auto;
     }
     .auth-card-v2 h2 { font-family: 'Orbitron', sans-serif; font-size: 1.7rem; font-weight: 700; margin-bottom: 20px; color: #fff; letter-spacing: 1px; }
 
@@ -316,6 +318,40 @@
     .checkbox-container input { margin-top: 3px; accent-color: var(--primary); width: 16px; height: 16px; }
     .checkbox-label strong { display: block; color: #fff; font-size: 0.9rem; }
     .checkbox-label span { display: block; color: var(--text-muted); font-size: 0.78rem; line-height: 1.3; }
+
+    /* CAIXA OPCIONAL DE PRIORIDADE VIP NO CHECKOUT */
+    .priority-upsell-box {
+      display: flex; align-items: flex-start; gap: 12px;
+      background: rgba(255, 183, 3, 0.06);
+      border: 1px dashed rgba(255, 183, 3, 0.45);
+      border-radius: 10px; padding: 14px; margin-bottom: 18px;
+      cursor: pointer; transition: all 0.25s ease; user-select: none;
+    }
+    .priority-upsell-box:hover {
+      background: rgba(255, 183, 3, 0.11);
+      border-color: var(--accent);
+    }
+    .priority-upsell-box.active {
+      background: rgba(255, 183, 3, 0.15);
+      border: 1px solid var(--accent);
+      box-shadow: 0 0 18px rgba(255, 183, 3, 0.25);
+    }
+    .priority-upsell-box input[type="checkbox"] {
+      margin-top: 3px; width: 18px; height: 18px;
+      accent-color: var(--accent); cursor: pointer; flex-shrink: 0;
+    }
+    .priority-upsell-info strong {
+      display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+      color: #fff; font-size: 0.96rem; margin-bottom: 3px;
+    }
+    .priority-badge {
+      background: var(--accent); color: #000;
+      font-family: 'Orbitron', sans-serif; font-size: 0.72rem; font-weight: 800;
+      padding: 2px 8px; border-radius: 4px;
+    }
+    .priority-upsell-info span {
+      display: block; color: var(--text-muted); font-size: 0.82rem; line-height: 1.35;
+    }
 
     .btn-submit-orange {
       width: 100%; padding: 14px; background: linear-gradient(45deg, var(--secondary), var(--primary)); border: none;
@@ -335,7 +371,7 @@
     .step-item.active { color: var(--primary); text-shadow: 0 0 8px rgba(0, 210, 255, 0.5); }
 
     .checkout-summary-box { background: rgba(0, 210, 255, 0.05); border: 1px solid rgba(0, 210, 255, 0.2); border-radius: 8px; padding: 15px; margin-bottom: 18px; }
-    .checkout-summary-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+    .checkout-summary-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 6px; }
     .checkout-summary-row:last-child { margin-bottom: 0; padding-top: 8px; border-top: 1px dashed rgba(255,255,255,0.1); }
 
     .timer-box { background: rgba(0, 210, 255, 0.08); border: 1px solid rgba(0, 210, 255, 0.25); border-radius: 8px; padding: 8px 12px; text-align: center; font-size: 0.9rem; color: #a0aec0; margin-bottom: 18px; }
@@ -564,7 +600,6 @@
       <div class="proof-card">
         <div class="proof-preview">
           <span class="proof-badge-verified">✔ ESTOQUE VERIFICADO • BR</span>
-          <!-- Para usar um print real do cliente LoL, substitua a div abaixo por: <img src="print-conta-40k.png" alt="Conta Unranked 40k EA"> -->
           <div class="client-hud-box">
             <div class="hud-stat-row">
               <span class="hud-stat-label">Nível da Conta</span>
@@ -593,7 +628,6 @@
       <div class="proof-card">
         <div class="proof-preview">
           <span class="proof-badge-verified">✔ BOOST CONCLUÍDO • HIGH ELO</span>
-          <!-- Para usar um print real do histórico de partidas, substitua a div abaixo por: <img src="print-boost.png" alt="Histórico de Vitórias Elo Boost"> -->
           <div class="client-hud-box">
             <div class="hud-stat-row">
               <span class="hud-stat-label">Subida Realizada</span>
@@ -1031,7 +1065,7 @@
       <div class="checkout-summary-box">
         <div class="checkout-summary-row">
           <span style="color: var(--text-muted);">Item Selecionado:</span>
-          <strong id="checkoutItemName" style="color: #fff;">Conta Unranked</strong>
+          <strong id="checkoutItemName" style="color: #fff; text-align: right;">Conta Unranked</strong>
         </div>
         <div class="checkout-summary-row">
           <span style="color: var(--text-muted);">Total a Pagar:</span>
@@ -1156,11 +1190,37 @@
   <script>
     const DISCORD_INVITE_URL = "https://discord.gg/s7H4mD7MMF";
 
+    // Configuração da taxa opcional de Prioridade VIP no Elo Boost e Duo Boost
+    const CONFIG_PRIORIDADE = {
+      tipo: 'percentual',    // 'percentual' ou 'fixo'
+      valorPercentual: 0.25, // +25% sobre o valor do serviço
+      valorFixo: 15.00       // +R$ 15,00 (usado se tipo === 'fixo')
+    };
+
     let timerInterval = null;
     let checagemPagamentoInterval = null;
-    let produtoAtualInfo = { nome: '', preco: '', unitario: 0, quantidade: 1 };
+    let produtoAtualInfo = {
+      nome: '',
+      nomeBase: '',
+      preco: '',
+      unitario: 0,
+      unitarioBase: 0,
+      quantidade: 1,
+      prioridade: false
+    };
     let idPagamentoAtual = null;
     let qtdUnrankedSelecionada = 1;
+
+    function formatarReais(valor) {
+      return `R$ ${Number(valor).toFixed(2).replace('.', ',')}`;
+    }
+
+    function calcularAcrescimoPrioridade(valorBase) {
+      if (CONFIG_PRIORIDADE.tipo === 'fixo') {
+        return Math.round(CONFIG_PRIORIDADE.valorFixo * 100) / 100;
+      }
+      return Math.round(valorBase * CONFIG_PRIORIDADE.valorPercentual * 100) / 100;
+    }
 
     /* MENU MOBILE */
     function toggleMobileMenu() {
@@ -1235,10 +1295,13 @@
       const valorUnitario = unitario ? unitario : (valorNumTotal / quantidade);
 
       produtoAtualInfo = { 
-        nome: nomeProduto, 
+        nome: nomeProduto,
+        nomeBase: nomeProduto,
         preco: precoProduto, 
         unitario: valorUnitario,
-        quantidade: quantidade 
+        unitarioBase: valorUnitario,
+        quantidade: quantidade,
+        prioridade: false
       };
 
       const tituloItem = quantidade > 1 ? `${quantidade}x ${nomeProduto}` : nomeProduto;
@@ -1250,11 +1313,46 @@
       document.getElementById('checkoutModal').style.display = 'flex';
     }
 
+    function alternarPrioridadeBoost() {
+      const checkbox = document.getElementById('custPrioridade');
+      const box = document.getElementById('priorityBox');
+      if (!checkbox) return;
+
+      const marcado = checkbox.checked;
+      const acrescimo = marcado ? calcularAcrescimoPrioridade(produtoAtualInfo.unitarioBase) : 0;
+      const novoUnitario = Math.round((produtoAtualInfo.unitarioBase + acrescimo) * 100) / 100;
+      const novoTotal = Math.round((novoUnitario * produtoAtualInfo.quantidade) * 100) / 100;
+
+      produtoAtualInfo.prioridade = marcado;
+      produtoAtualInfo.unitario = novoUnitario;
+      produtoAtualInfo.nome = marcado
+        ? `${produtoAtualInfo.nomeBase} (Prioridade VIP)`
+        : produtoAtualInfo.nomeBase;
+      produtoAtualInfo.preco = formatarReais(novoTotal);
+
+      const tituloExibicao = produtoAtualInfo.quantidade > 1
+        ? `${produtoAtualInfo.quantidade}x ${produtoAtualInfo.nome}`
+        : produtoAtualInfo.nome;
+
+      document.getElementById('checkoutItemName').innerText = tituloExibicao;
+      document.getElementById('checkoutItemPrice').innerText = produtoAtualInfo.preco;
+
+      if (box) {
+        if (marcado) box.classList.add('active');
+        else box.classList.remove('active');
+      }
+    }
+
     function renderizarCamposEtapa1(nomeProduto) {
       const container = document.getElementById('dynamicFormFields');
       const ehBoost = nomeProduto.toLowerCase().includes('boost');
 
       if (ehBoost) {
+        const valorExtra = calcularAcrescimoPrioridade(produtoAtualInfo.unitarioBase);
+        const labelTaxa = CONFIG_PRIORIDADE.tipo === 'fixo'
+          ? `+ ${formatarReais(valorExtra)}`
+          : `+ ${Math.round(CONFIG_PRIORIDADE.valorPercentual * 100)}% (+ ${formatarReais(valorExtra)})`;
+
         container.innerHTML = `
           <div class="form-group">
             <label>RIOT ID COMPLETO (NICK #TAG)</label>
@@ -1275,6 +1373,14 @@
             <label>E-MAIL PARA ATUALIZAÇÕES</label>
             <input type="email" id="custEmail" class="form-control" placeholder="seuemail@exemplo.com" required>
           </div>
+
+          <label class="priority-upsell-box" id="priorityBox" for="custPrioridade">
+            <input type="checkbox" id="custPrioridade" onchange="alternarPrioridadeBoost()">
+            <div class="priority-upsell-info">
+              <strong>⚡ PRIORIDADE VIP NA FILA <span class="priority-badge">${labelTaxa}</span></strong>
+              <span>Fure a fila: seu pedido passa na frente e inicia imediatamente com nossos boosters mais rápidos.</span>
+            </div>
+          </label>
         `;
       } else {
         container.innerHTML = `
@@ -1460,14 +1566,19 @@
       const discord = document.getElementById('custDiscord')?.value || 'Não informado';
       const riotId = document.getElementById('custRiotId')?.value || null;
       const flash = document.getElementById('custFlash')?.value || null;
-      const ehDuoBoost = produtoAtualInfo.nome.toLowerCase().includes('duo');
+      const ehDuoBoost = produtoAtualInfo.nomeBase.toLowerCase().includes('duo');
 
       let summaryHtml = `
         <p><strong>Produto:</strong> ${produtoAtualInfo.nome}</p>
         <p><strong>Quantidade:</strong> ${produtoAtualInfo.quantidade}x</p>
+        <p><strong>Valor Pago:</strong> ${produtoAtualInfo.preco}</p>
         <p><strong>E-mail cadastrado:</strong> ${email}</p>
         <p><strong>Discord:</strong> ${discord}</p>
       `;
+
+      if (produtoAtualInfo.prioridade) {
+        summaryHtml += `<p><strong>Atendimento:</strong> <span style="color: var(--accent); font-weight: 700;">⚡ Prioridade VIP Ativada</span></p>`;
+      }
 
       if (riotId) {
         summaryHtml += `<p><strong>Riot ID:</strong> ${riotId}</p>`;
