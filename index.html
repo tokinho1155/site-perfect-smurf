@@ -1221,7 +1221,17 @@
 
     /* GERENCIADOR DE CHECKOUT */
     function comprar(nomeProduto, precoProduto, quantidade = 1, unitario = null) {
+      if (!precoProduto || precoProduto.toLowerCase().includes('inválido')) {
+        alert('Selecione um Elo Desejado maior que o Elo Atual antes de contratar.');
+        return;
+      }
+
       const valorNumTotal = parseFloat(precoProduto.replace('R$ ', '').replace(',', '.'));
+      if (isNaN(valorNumTotal) || valorNumTotal <= 0) {
+        alert('Valor do serviço inválido.');
+        return;
+      }
+
       const valorUnitario = unitario ? unitario : (valorNumTotal / quantidade);
 
       produtoAtualInfo = { 
@@ -1318,12 +1328,14 @@
     /* CONEXÃO COM O BACKEND (BRAVOPAY) E DISPARO DO POLLING */
     async function gerarCobrancaGateway(nomeProduto, precoUnitario, quantidade = 1) {
       const emailCliente = document.getElementById('custEmail')?.value || 'cliente@teste.com';
+      const inputPix = document.getElementById('pixCopiaColaInput');
+      const imgQr = document.getElementById('pixQrImage');
 
       try {
         const URL_DO_SEU_SERVIDOR = 'https://perfeito-smurf-api.onrender.com/gerar-pix';
 
-        document.getElementById('pixCopiaColaInput').value = "Gerando PIX... aguarde";
-        document.getElementById('pixQrImage').src = "https://via.placeholder.com/190?text=Carregando+QR...";
+        inputPix.value = "Gerando PIX... aguarde";
+        imgQr.src = "https://via.placeholder.com/190?text=Carregando+QR...";
 
         const resposta = await fetch(URL_DO_SEU_SERVIDOR, {
           method: 'POST',
@@ -1339,46 +1351,60 @@
 
         const dados = await resposta.json();
 
-        if (dados.sucesso) {
+        if (dados.sucesso && (dados.pix_copia_cola || dados.qr_code_base64)) {
           idPagamentoAtual = dados.id_pagamento;
-          document.getElementById('pixCopiaColaInput').value = dados.pix_copia_cola;
+          inputPix.value = dados.pix_copia_cola || 'Use o QR Code acima para pagar';
 
           if (dados.qr_code_base64 && dados.qr_code_base64.trim() !== '') {
-            document.getElementById('pixQrImage').src = dados.qr_code_base64.startsWith('http') || dados.qr_code_base64.startsWith('data:')
+            imgQr.src = dados.qr_code_base64.startsWith('http') || dados.qr_code_base64.startsWith('data:')
               ? dados.qr_code_base64 
               : `data:image/png;base64,${dados.qr_code_base64}`;
           } else if (dados.pix_copia_cola) {
-            document.getElementById('pixQrImage').src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(dados.pix_copia_cola)}`;
+            imgQr.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(dados.pix_copia_cola)}`;
           }
 
           iniciarTimerPix(900);
           monitorarStatusPagamento(dados.id_pagamento);
         } else {
-          alert("Erro ao gerar pagamento: " + (dados.mensagem || "Erro desconhecido"));
+          const msgErro = dados.mensagem || "O gateway não retornou o código PIX. Tente novamente.";
+          inputPix.value = "Erro ao gerar PIX. Feche e tente novamente.";
+          imgQr.src = "https://via.placeholder.com/190?text=Erro+no+PIX";
+          alert("Erro ao gerar pagamento: " + msgErro);
         }
 
       } catch (erro) {
         console.error("Erro de conexão:", erro);
-        document.getElementById('pixCopiaColaInput').value = "Falha ao conectar no servidor.";
+        inputPix.value = "Falha ao conectar no servidor.";
+        imgQr.src = "https://via.placeholder.com/190?text=Sem+Conexao";
       }
     }
 
     async function verificarPagamentoManual() {
       const btn = document.getElementById('btnVerificarPagamento');
-      if (!btn) return;
+      if (!btn || !idPagamentoAtual) return;
 
       const textoOriginal = btn.innerHTML;
       btn.innerHTML = '⏳ CONSULTANDO BANCO...';
       btn.disabled = true;
       btn.style.opacity = '0.7';
 
-      setTimeout(() => {
+      try {
+        const res = await fetch(`https://perfeito-smurf-api.onrender.com/status-pagamento/${idPagamentoAtual}`);
+        const data = await res.json();
+
+        if (data.status === 'PAID' || data.status === 'APPROVED') {
+          confirmarPagamentoSucesso();
+          return;
+        }
+
+        alert('Ainda não identificamos a confirmação do seu PIX no sistema bancário.\n\nSe você já efetuou a transferência no aplicativo do seu banco, aguarde de 10 a 30 segundos para o processamento do PIX e tente novamente.');
+      } catch (err) {
+        alert('Não foi possível consultar o status agora. Aguarde alguns segundos.');
+      } finally {
         btn.innerHTML = textoOriginal;
         btn.disabled = false;
         btn.style.opacity = '1';
-
-        alert('Ainda não identificamos a confirmação do seu PIX no sistema bancário.\n\nSe você já efetuou a transferência no aplicativo do seu banco, aguarde de 10 a 30 segundos para o processamento do PIX e tente novamente.');
-      }, 2000);
+      }
     }
 
     function fecharCheckoutModal() {
@@ -1391,7 +1417,7 @@
       const input = document.getElementById('pixCopiaColaInput');
       const btn = document.getElementById('btnCopyPix');
 
-      if (!input.value || input.value.includes('Gerando') || input.value.includes('Falha')) return;
+      if (!input.value || input.value.includes('Gerando') || input.value.includes('Falha') || input.value.includes('Erro')) return;
 
       navigator.clipboard.writeText(input.value).then(() => {
         btn.classList.add('copied');
